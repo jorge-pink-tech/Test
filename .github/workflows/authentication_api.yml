@@ -70,6 +70,8 @@ jobs:
         with:
          MINIMUM_COVERAGE: 0
          INCLUDE_TESTS: 'true'
+        env:
+         DANGER_GITHUB_API_TOKEN: ${{ secrets.ACTIONS_API_TOKEN }}
          
       - name: Post Test coverage
         uses: romeovs/lcov-reporter-action@v0.3.1

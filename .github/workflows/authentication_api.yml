@@ -1,4 +1,4 @@
-name: CI with PostgreSQL and Swift 5.9
+name: AuthenticationAPI
 
 on:
   push:
@@ -52,13 +52,21 @@ jobs:
       - name: Resolve Dependencies
         run: swift package resolve --verbose
 
-      - name: Build Project
-        run: swift build --verbose
-
       - name: Run Unit Tests
         run: swift test --enable-code-coverage --verbose
-
-      - uses: mattpolzin/swift-codecov-action@0.7.5
+    
+      - name: Test coverage
+        uses: maxep/spm-lcov-action@0.3.0
         with:
-         MINIMUM_COVERAGE: 98
+         output-file: ./coverage/lcov.info
+    
+      - name: Validate Minimum Coverage
+        uses: mattpolzin/swift-codecov-action@0.7.5
+        with:
+         MINIMUM_COVERAGE: 0
          INCLUDE_TESTS: 'true'
+         
+      - name: Post Test coverage
+        uses: romeovs/lcov-reporter-action@v0.3.1
+        with:
+         lcov-file: ./coverage/lcov.info

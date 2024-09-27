@@ -41,6 +41,10 @@ jobs:
           sudo rm -rf swift-5.9-RELEASE-ubuntu20.04*
           swift --version
 
+      - name: Install LLVM
+        run: |
+          sudo apt-get install -y llvm clang
+
       - name: Set up PostgreSQL environment variables
         run: |
           echo "DATABASE_HOST=postgres" >> $GITHUB_ENV
@@ -58,15 +62,13 @@ jobs:
       - name: Test coverage
         uses: maxep/spm-lcov-action@0.3.0
         with:
-         output-file: ./coverage/lcov.info
+          output-file: ./coverage/lcov.info
     
       - name: Validate Minimum Coverage
         uses: mattpolzin/swift-codecov-action@0.7.5
         with:
-         MINIMUM_COVERAGE: 0
-         INCLUDE_TESTS: 'true'
+          MINIMUM_COVERAGE: 0
+          INCLUDE_TESTS: 'true'
          
       - name: Post Test coverage
-        uses: romeovs/lcov-reporter-action@v0.3.1
-        with:
-         lcov-file: ./coverage/lcov.info
+        uses: rome

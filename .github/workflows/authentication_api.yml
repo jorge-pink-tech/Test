@@ -1,4 +1,4 @@
-name: AuthenticationAPI
+name: AuthenticationAPITests
 
 on:
   push:
@@ -72,7 +72,11 @@ jobs:
           llvm-profdata merge -sparse .build/debug/codecov/*.profraw -o merged.profdata
           llvm-cov export --format=lcov --instr-profile=merged.profdata .build/debug/kounty-apiPackageTests.xctest > coverage/lcov.info
     
-      
+      - name: Validate Minimum Coverage
+        uses: mattpolzin/swift-codecov-action@0.7.5
+        with:
+         MINIMUM_COVERAGE: 0
+         INCLUDE_TESTS: 'true'
          
       - name: Post Test coverage
         uses: romeovs/lcov-reporter-action@v0.3.1

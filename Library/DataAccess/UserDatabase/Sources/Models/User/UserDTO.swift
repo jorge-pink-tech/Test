@@ -11,7 +11,7 @@ import Vapor
 /// properties and methods that a user object should have, and is used to interact
 /// with the data storage system (e.g. a database).
 public final class UserDTO: Model {
-    /// The ID of the user.
+    /// The ID of the user
     @ID(key: .id)
     public var id: UUID?
    

@@ -58,28 +58,7 @@ jobs:
       - name: Run Unit Tests
         run: swift test --enable-code-coverage --verbose
 
-      - uses: michaelhenry/swifty-code-coverage@v1.0.0
+      - uses: mattpolzin/swift-codecov-action@0.7.5
         with:
-          build-path: "${{ github.workspace }}/Library/APIs/AuthenticationApi/.build"
-          target: AuthenticationApiPackageTests.xctest
-          is-spm: true
-          output: "coverage/lcov.info"
-          output-artifact-name: "codecov-artifact"
-          ignore-filename-regex: '.build|Tests|Pods|Carthage|DerivedData|checkouts|Services'
-
-      - name: Upload lcov coverage report
-        uses: actions/upload-artifact@v3
-        with:
-          name: lcov-report
-          path: coverage/lcov.info
-
-      - name: Post coverage report
-        uses: romeovs/lcov-reporter-action@v0.3.1
-        with:
-          lcov-file: coverage/lcov.info
-
-      - name: Check Code Coverage
-        uses: VeryGoodOpenSource/very_good_coverage@v1.2.1
-        with:
-          path: coverage/lcov.info
-          min_coverage: 95
+         MINIMUM_COVERAGE: 98
+         INCLUDE_TESTS: 'true'

@@ -64,7 +64,7 @@ jobs:
         run: swift package resolve --verbose
 
       - name: Run Unit Tests
-        run: swift test --enable-code-coverage --verbose
+        run: swift test --scheme AuthenticationApiTests --enable-code-coverage --verbose
 
       - name: Create Coverage Data
         run: |

@@ -31,7 +31,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Install Swift 5.9
+      - name: Install Swift
         run: |
           sudo apt-get update
           sudo apt-get install libcurl4 libpython3-dev libicu-dev libssl-dev libsqlite3-dev libblocksruntime-dev
@@ -59,10 +59,10 @@ jobs:
       - name: Run Unit Tests
         run: swift test --enable-code-coverage --verbose
     
-      - name: Test coverage
-        uses: maxep/spm-lcov-action@0.3.0
-        with:
-         output-file: ./coverage/lcov.info
+      - name: Merge Coverage Data
+        run: |
+          llvm-profdata merge -sparse .build/debug/codecov/*.profraw -o merged.profdata
+          llvm-cov export --format=lcov --instr-profile=merged.profdata .build/debug/kounty-apiPackageTests.xctest > coverage/lcov.info
     
       - name: Validate Minimum Coverage
         uses: mattpolzin/swift-codecov-action@0.7.5

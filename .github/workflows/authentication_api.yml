@@ -59,15 +59,11 @@ jobs:
       - name: Run Unit Tests
         run: swift test --enable-code-coverage --verbose
 
-      - name: Merge Coverage Data
+      - name: Create Coverage Data
         run: |
+          mkdir -p coverage
           llvm-profdata merge -sparse .build/debug/codecov/*.profraw -o merged.profdata
           llvm-cov export --format=lcov --instr-profile=merged.profdata .build/debug/kounty-apiPackageTests.xctest > coverage/lcov.info
-    
-      - name: Test coverage
-        uses: maxep/spm-lcov-action@0.3.0        
-        with:
-         output-file: coverage/lcov.info
     
       - name: Validate Minimum Coverage
         uses: mattpolzin/swift-codecov-action@0.7.5

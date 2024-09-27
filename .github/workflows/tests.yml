@@ -1,0 +1,59 @@
+name: Unit Tests and Coverage
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+    
+  workflow_dispatch:
+  
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout Branch
+        uses: actions/checkout@v4
+
+      - name: Resolve Swift Packages
+        run: xcodebuild -resolvePackageDependencies
+
+      - name: Install lcov and llvm-cov
+        run: |
+          brew install lcov llvm
+          sudo ln -s /usr/local/opt/llvm/bin/llvm-cov /usr/local/bin/llvm-cov
+          
+      - name: Run Unit Tests
+        run: swift test --enable-code-coverage
+
+      - name: Set UUID Variable
+        id: set_uuid
+        run: echo "::set-output name=uuid::$(ls build/Build/ProfileData/)"
+
+      - name: Create Coverage Directory
+        run: mkdir -p coverage
+
+      - name: Generate lcov coverage report
+        run: |
+          xcrun llvm-cov export \
+            -format=lcov \
+            -instr-profile build/Build/ProfileData/${{ steps.set_uuid.outputs.uuid }}/Coverage.profdata \
+            build/Build/Products/Debug-iphonesimulator/TruvideoSdk.framework/TruvideoSdk \
+            -ignore-filename-regex='.*Tests.*' > coverage/lcov.info
+
+      - name: Upload lcov coverage report
+        uses: actions/upload-artifact@v3
+        with:
+          name: lcov-report
+          path: coverage/lcov.info
+    
+      - name: Post coverage report
+        uses: romeovs/lcov-reporter-action@v0.3.1
+        with:
+          lcov-file: coverage/lcov.info
+
+      - name: Check Code Coverage
+        uses: VeryGoodOpenSource/very_good_coverage@v1.2.1
+        with:
+          path: coverage/lcov.info
+          min_coverage: 1

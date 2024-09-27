@@ -1,0 +1,85 @@
+name: CI with PostgreSQL and Swift 5.9
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_USER: vapor_username
+          POSTGRES_PASSWORD: vapor_password
+          POSTGRES_DB: kounty-users-test
+        options: >-
+          --health-cmd "pg_isready -U vapor_username"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install Swift 5.9
+        run: |
+          sudo apt-get update
+          sudo apt-get install libcurl4 libpython3-dev libicu-dev libssl-dev libsqlite3-dev libblocksruntime-dev
+          wget https://download.swift.org/swift-5.9-release/ubuntu2004/swift-5.9-RELEASE/swift-5.9-RELEASE-ubuntu20.04.tar.gz
+          tar xzf swift-5.9-RELEASE-ubuntu20.04.tar.gz
+          sudo mv swift-5.9-RELEASE-ubuntu20.04/usr /usr
+          sudo rm -rf swift-5.9-RELEASE-ubuntu20.04*
+          swift --version
+
+      - name: Set up PostgreSQL environment variables
+        run: |
+          echo "DATABASE_HOST=postgres" >> $GITHUB_ENV
+          echo "DATABASE_PORT=5432" >> $GITHUB_ENV
+          echo "DATABASE_NAME=kounty-users-test" >> $GITHUB_ENV
+          echo "DATABASE_USERNAME=vapor_username" >> $GITHUB_ENV
+          echo "DATABASE_PASSWORD=vapor_password" >> $GITHUB_ENV
+
+      - name: Resolve Dependencies
+        run: swift package resolve --verbose
+
+      - name: Build Project
+        run: swift build --verbose
+
+      - name: Run Unit Tests
+        run: swift test --enable-code-coverage --verbose
+
+      - uses: michaelhenry/swifty-code-coverage@v1.0.0
+        with:
+          build-path: "${{ github.workspace }}/Library/APIs/AuthenticationApi/.build"
+          target: AuthenticationApiPackageTests.xctest
+          is-spm: true
+          output: "coverage/lcov.info"
+          output-artifact-name: "codecov-artifact"
+          ignore-filename-regex: '.build|Tests|Pods|Carthage|DerivedData|checkouts|Services'
+
+      - name: Upload lcov coverage report
+        uses: actions/upload-artifact@v3
+        with:
+          name: lcov-report
+          path: coverage/lcov.info
+
+      - name: Post coverage report
+        uses: romeovs/lcov-reporter-action@v0.3.1
+        with:
+          lcov-file: coverage/lcov.info
+
+      - name: Check Code Coverage
+        uses: VeryGoodOpenSource/very_good_coverage@v1.2.1
+        with:
+          path: coverage/lcov.info
+          min_coverage: 95

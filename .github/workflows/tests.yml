@@ -2,8 +2,15 @@ name: Unit Tests and Coverage
 on:
   push:
     branches: [main]
+    paths:
+      - "Sources/**"
+      - ".github/workflows/tests.yaml"
+      
   pull_request:
     branches: [main]
+    paths:
+      - "Sources/**"
+      - ".github/workflows/tests.yaml"
     
   workflow_dispatch:
   

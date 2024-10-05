@@ -4,9 +4,15 @@ on:
   push:
     branches:
       - main
+    paths:
+      - "Library/APIs/Authentication/**"
+      - ".github/workflows/authentication_api.yaml"
   pull_request:
     branches:
       - main
+    paths:
+      - "Library/APIs/Authentication/**"
+      - ".github/workflows/authentication_api.yaml"
 
 jobs:
   build:

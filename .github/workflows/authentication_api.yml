@@ -5,13 +5,13 @@ on:
     branches:
       - main
     paths:
-      - "Library/APIs/Authentication/**"
+      - "Library/APIs/AuthenticationApi/**"
       - ".github/workflows/authentication_api.yaml"
   pull_request:
     branches:
       - main
     paths:
-      - "Library/APIs/Authentication/**"
+      - "Library/APIs/AuthenticationApi/**"
       - ".github/workflows/authentication_api.yaml"
 
 jobs:

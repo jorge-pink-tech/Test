@@ -11,7 +11,7 @@ import Vapor
 /// properties and methods that a user object should have, and is used to interact
 /// with the data storage system (e.g. a database).
 public final class UserDTO: Model {
-    /// The ID of the user
+    /// The ID of the user.
     @ID(key: .id)
     public var id: UUID?
    
@@ -109,7 +109,7 @@ public final class UserDTO: Model {
             
             try await update(on: database)
         } catch {
-            throw error.asKountyError(or: UserDatabaseErrorReason.saveFailed)
+            throw error.asKountyError(or: .UserDatabaseErrorReason.saveFailed)
         }
     }
     
@@ -127,14 +127,14 @@ public final class UserDTO: Model {
         
         if user.email == email {
             throw KountyError(
-                kind: UserDatabaseErrorReason.emailTaken,
+                kind: .UserDatabaseErrorReason.emailTaken,
                 failureReason: "El email se encuentra registrado."
             )
         }
         
         if user.phone == phone {
             throw KountyError(
-                kind: UserDatabaseErrorReason.phoneIsRegistered,
+                kind: .UserDatabaseErrorReason.phoneIsRegistered,
                 failureReason: "El telefono se encuentra registrado."
             )
         }

@@ -51,6 +51,13 @@ extension SignUpParameters: Validatable {
             is: !.empty,
             customFailureDescription: "El apellido no puede estar vacio."
         )
+
+        validations.add(
+            "password",
+            as: String.self,
+            is: .isValidPassword,
+            customFailureDescription: "La contraseña no cumple con los criterios requeridos."
+        )
         
         validations.add(
             "phone",

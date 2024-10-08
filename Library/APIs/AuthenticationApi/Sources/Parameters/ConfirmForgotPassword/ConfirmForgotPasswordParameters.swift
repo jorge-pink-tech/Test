@@ -4,7 +4,7 @@
 
 import Vapor
 
-/// A struct representing the parameters when creating a new password
+/// A struct representing the parameters when creating a new password.
 public struct ConfirmForgotPasswordParameters: Decodable {
     /// The confirmation code of the user.
     public let confirmationCode: String

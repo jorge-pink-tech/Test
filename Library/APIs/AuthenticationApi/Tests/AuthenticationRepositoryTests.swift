@@ -1,8 +1,5 @@
 //
-//  AuthenticationRepositoryTests.swift
-//
-//  Created by PinkTech on 3/01/24.
-//  Copyright © 2023 PinkTech. All rights reserved.
+// Copyright © 2024 PinkTech. All rights reserved.
 //
 
 import Cognito
@@ -16,10 +13,6 @@ import XCTest
 import XCTVapor
 
 @testable import AuthenticationApi
-
-public enum TestErrorReason: ErrorReason {
-    case test
-}
 
 final class AuthenticationRepositoryTests: XCTestCase {
     private var cognitoClient: CognitoAuthenticatableClientMock!
@@ -43,8 +36,7 @@ final class AuthenticationRepositoryTests: XCTestCase {
     
     override func setUpWithError() throws {
         cognitoClient = CognitoAuthenticatableClientMock()
-        app = Application(.testing)
-        userDatabase = try app.testableUserDatabase()
+        app = Application(.testing)        
         
         try super.setUpWithError()
     }
@@ -92,7 +84,7 @@ final class AuthenticationRepositoryTests: XCTestCase {
         
         // When
         cognitoClient.error = KountyError(
-            kind: CognitoErrorReason.invalidPassword,
+            kind: .CognitoErrorReason.invalidPassword,
             underlyingError: AuthenticationError.error(reason: "Test")
         )
         
@@ -126,7 +118,7 @@ final class AuthenticationRepositoryTests: XCTestCase {
         
         // When
         cognitoClient.error = KountyError(
-            kind: CognitoErrorReason.invalidConfirmationCode,
+            kind: .CognitoErrorReason.invalidConfirmationCode,
             underlyingError: AuthenticationError.error(reason: "Test")
         )
         
@@ -160,7 +152,7 @@ final class AuthenticationRepositoryTests: XCTestCase {
         
         // When
         cognitoClient.error = KountyError(
-            kind: TestErrorReason.test,
+            kind: .testErrorReason,
             underlyingError: AuthenticationError.error(reason: "Test")
         )
         
@@ -245,7 +237,7 @@ final class AuthenticationRepositoryTests: XCTestCase {
         
         // When
         cognitoClient.error = KountyError(
-            kind: CognitoErrorReason.expiredConfirmationCode,
+            kind: .CognitoErrorReason.expiredConfirmationCode,
             underlyingError: AuthenticationError.error(reason: "Test")
         )
 
@@ -280,7 +272,7 @@ final class AuthenticationRepositoryTests: XCTestCase {
         
         // When
         cognitoClient.error = KountyError(
-            kind: TestErrorReason.test,
+            kind: .testErrorReason,
             underlyingError: AuthenticationError.error(reason: "Test")
         )
 
@@ -360,7 +352,7 @@ final class AuthenticationRepositoryTests: XCTestCase {
         
         // When
         cognitoClient.error = KountyError(
-            kind: CognitoErrorReason.userNotConfirmed,
+            kind: .CognitoErrorReason.userNotConfirmed,
             underlyingError: AuthenticationError.error(reason: "Test")
         )
 
@@ -388,7 +380,7 @@ final class AuthenticationRepositoryTests: XCTestCase {
         
         // When
         cognitoClient.error = KountyError(
-            kind: TestErrorReason.test,
+            kind: .testErrorReason,
             underlyingError: AuthenticationError.error(reason: "Test")
         )
 
@@ -491,7 +483,7 @@ final class AuthenticationRepositoryTests: XCTestCase {
         
         // When
         cognitoClient.error = KountyError(
-            kind: CognitoErrorReason.invalidPassword,
+            kind: .CognitoErrorReason.invalidPassword,
             underlyingError: AuthenticationError.error(reason: "Test")
         )
 
@@ -520,7 +512,7 @@ final class AuthenticationRepositoryTests: XCTestCase {
         
         // When
         cognitoClient.error = KountyError(
-            kind: TestErrorReason.test,
+            kind: .testErrorReason,
             underlyingError: AuthenticationError.error(reason: "Test")
         )
 
@@ -612,7 +604,7 @@ final class AuthenticationRepositoryTests: XCTestCase {
         
         // When
         cognitoClient.error = KountyError(
-            kind: CognitoErrorReason.signupFailed,
+            kind: .CognitoErrorReason.signUpFailed,
             underlyingError: AuthenticationError.error(reason: "Test")
         )
 
@@ -650,7 +642,7 @@ final class AuthenticationRepositoryTests: XCTestCase {
         
         // When
         cognitoClient.error = KountyError(
-            kind: TestErrorReason.test,
+            kind: .testErrorReason,
             underlyingError: AuthenticationError.error(reason: "Test")
         )
 
@@ -702,4 +694,8 @@ final class AuthenticationRepositoryTests: XCTestCase {
         XCTAssertNil(error.title)
         XCTAssertFalse(error.underlyingErrors.isEmpty)
     }
+}
+
+private extension ErrorReason {
+    static let testErrorReason = ErrorReason(rawValue: "Test_Error_Reason")
 }

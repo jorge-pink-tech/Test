@@ -65,7 +65,7 @@
       <EnvironmentVariables>
          <EnvironmentVariable
             key = "DATABASE_PORT"
-            value = "5433"
+            value = "5432"
             isEnabled = "YES">
          </EnvironmentVariable>
          <EnvironmentVariable
@@ -85,7 +85,7 @@
          </EnvironmentVariable>
          <EnvironmentVariable
             key = "DATABASE_NAME"
-            value = "kounty-users"
+            value = "kounty"
             isEnabled = "YES">
          </EnvironmentVariable>
       </EnvironmentVariables>

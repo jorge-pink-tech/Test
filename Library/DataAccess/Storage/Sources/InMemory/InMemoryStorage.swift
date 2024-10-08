@@ -50,10 +50,10 @@ public class InMemoryStorage: XStorage {
             guard let data = storage[key] else {
                 return nil
             }
-                
+
             return try decoder.decode(T.self, from: data)
         } catch {
-            throw KountyError(kind: StorageErrorReason.readFailed, underlyingError: error)
+            throw KountyError(kind: .StorageErrorReason.readFailed, underlyingError: error)
         }
     }
 
@@ -69,7 +69,7 @@ public class InMemoryStorage: XStorage {
             let data = try encoder.encode(value)
             storage[key] = data
         } catch {
-            throw KountyError(kind: StorageErrorReason.writeFailed, underlyingError: error)
+            throw KountyError(kind: .StorageErrorReason.writeFailed, underlyingError: error)
         }
     }
 }

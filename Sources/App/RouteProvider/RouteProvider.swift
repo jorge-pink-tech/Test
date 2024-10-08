@@ -4,6 +4,7 @@
 
 import AuthenticationApi
 import Cognito
+import DatasourceApi
 import Fluent
 import RediStack
 import Storage
@@ -28,13 +29,11 @@ struct RouteProvider {
     ///
     /// - Throws: An error if any route registration or service setup fails.
     func register() async throws {
+        let logger = Logger(label: "com.kounty.logger.database")
+        let eventLoop = application.eventLoopGroup.next()
         let redisStorage = try await RedisStorage.make(hostname: Environment.get("DATABASE_HOST") ?? "localhost")
-        
-        guard let userDatabase = application.databases.database(
-            .users,
-            logger: Logger(label: "com.kounty.logger.user.database"),
-            on: application.eventLoopGroup.next()
-        ) else {
+                
+        guard let database = application.databases.database(logger: logger, on: eventLoop) else {
             return
         }
         
@@ -42,29 +41,36 @@ struct RouteProvider {
         let cognitoClient = CognitoClient(clientId: "5cjb30aes7v4tdcn4qnel3lf9v", poolId: "us-east-1_CTA9LEI3X")
         
         // Repositories
-        let userRepository = UserRepositoryImpl(userDatabase: userDatabase)
+        let datasourceRepository = DatasourceRepositoryImpl(datasourceDatabase: database)
+        let userRepository = UserRepositoryImpl(userDatabase: database)
         let authenticationRepository = AuthenticationRepositoryImpl(
             cognitoAuthenticatableClient: cognitoClient,
-            userDatabase: userDatabase
+            userDatabase: database
         )
 
         // Controllers
         let authenticationController = AuthenticationController(authenticationRepository: authenticationRepository)
+        let datasourceController = DatasourceController(datasourceRepository: datasourceRepository)
         
         // Routes
-        let api = application.grouped("api")
+        let api = application
+            .grouped("api")
             .grouped(ApiKeyVerificationMiddleware(apiKey: "SLe+eWZgrebIVGla0s/wp/GWOfy4EoBmBxkzz="))
-            .grouped(
-                AuthenticatorMiddleware(
-                    authenticationRepository: authenticationRepository,
-                    storage: redisStorage,
-                    userRepository: userRepository
-                )
-            )
         
         try api.register(collection: authenticationController)
         
-        /*let countryRoutes = api.grouped("country")
-        try countryRoutes.register(collection: countryController)*/
+        // Authenticated routes
+        
+        let authenticatedApi = api.grouped(
+            AuthenticatorMiddleware(
+                authenticationRepository: authenticationRepository,
+                storage: redisStorage,
+                userRepository: userRepository
+            )
+        )
+        
+        try authenticatedApi
+            .grouped("datasources")
+            .register(collection: datasourceController)
     }
 }

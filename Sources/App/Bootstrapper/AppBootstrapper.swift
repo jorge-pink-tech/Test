@@ -4,6 +4,8 @@
 
 import AuthenticationApi
 import Cognito
+import DatasourceApi
+import DatasourceDatabase
 import Fluent
 import FluentPostgresDriver
 import Foundation
@@ -11,11 +13,6 @@ import NIOSSL
 import Storage
 import UserDatabase
 import Vapor
-
-extension DatabaseID {
-    /// The ID for the user database.
-    static let users = DatabaseID(string: "kounty-users")
-}
 
 /// The `AppBootstrapper` is responsible for setting up and initializing the necessary configurations
 /// and services needed to bootstrap the application, such as connecting to the database and running migrations.
@@ -36,21 +33,23 @@ struct AppBootstrapper {
     func bootstrap() async throws {
         // uncomment to serve files from /Public folder
         // app.middleware.use(FileMiddleware(publicDirectory: app.directory.publicDirectory))
-        let userDatabaseConfiguration = DatabaseConfigurationFactory.postgres(
-            configuration: .init(
-                hostname: Environment.get("DATABASE_HOST") ?? "",
-                port: Environment.get("DATABASE_PORT").flatMap(Int.init) ?? SQLPostgresConfiguration.ianaPortNumber,
-                username: Environment.get("DATABASE_USERNAME") ?? "",
-                password: Environment.get("DATABASE_PASSWORD") ?? "",
-                database: Environment.get("DATABASE_NAME") ?? "",
-                tls: .prefer(try .init(configuration: .clientDefault))
-            )
+        let databaseConfiguration = SQLPostgresConfiguration(
+            hostname: Environment.get("DATABASE_HOST") ?? "",
+            port: Environment.get("DATABASE_PORT").flatMap(Int.init) ?? SQLPostgresConfiguration.ianaPortNumber,
+            username: Environment.get("DATABASE_USERNAME") ?? "",
+            password: Environment.get("DATABASE_PASSWORD") ?? "",
+            database: Environment.get("DATABASE_NAME") ?? "",
+            tls: .prefer(try .init(configuration: .clientDefault))
         )
         
-        application.databases.use(userDatabaseConfiguration, as: .users)
+        application.databases.use(.postgres(configuration: databaseConfiguration), as: .psql)
 
-        // User Database
-        application.migrations.add(UserMigration(), to: .users)
+        // Datasource migrations
+        application.migrations.add(DatasourceEnumMigration())
+        application.migrations.add(DatasourceMigration())
+        
+        // User Migrations
+        application.migrations.add(UserMigration())
 
         try await application.autoMigrate()
     }

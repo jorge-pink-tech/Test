@@ -8,7 +8,7 @@ import Vapor
 struct PasswordValidatorResult: ValidatorResult {
     /// Indicates whether the input is a valid password.
     let isValid: Bool
-      
+
     /// A boolean value indicating whether the validation failed.
     var isFailure: Bool {
         !isValid
@@ -29,7 +29,7 @@ extension Validator where T == String {
     /// Validates whether a `String` is a valid zip code.
     static var isValidPassword: Validator<T> {
         .init { password in
-            let regex = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$"            
+            let regex = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$"
 
             do {
                 let regex = try NSRegularExpression(pattern: regex)

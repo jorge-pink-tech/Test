@@ -264,19 +264,19 @@ private extension CognitoAuthenticateResponse.AuthenticatedResponse {
     /// Transforms the current `AuthenticatedResponse` into a `CognitoToken` instance.
     func toCognitoToken() throws -> CognitoToken {
         guard let accessToken else {
-            throw KountyError(kind: CognitoErrorReason.missingAccessToken)
+            throw KountyError(kind: .CognitoErrorReason.missingAccessToken)
         }
         
         guard let expiresIn else {
-            throw KountyError(kind: CognitoErrorReason.missingTokenExpirationDate)
+            throw KountyError(kind: .CognitoErrorReason.missingTokenExpirationDate)
         }
         
         guard let idToken else {
-            throw KountyError(kind: CognitoErrorReason.missingAccessToken)
+            throw KountyError(kind: .CognitoErrorReason.missingAccessToken)
         }
         
         guard let refreshToken else {
-            throw KountyError(kind: CognitoErrorReason.missingRefreshToken)
+            throw KountyError(kind: .CognitoErrorReason.missingRefreshToken)
         }
         
         return CognitoToken(
@@ -290,26 +290,26 @@ private extension CognitoAuthenticateResponse.AuthenticatedResponse {
 
 private extension Error {
     /// The error reason returned by Amazon Cognito.
-    var cognitoErrorKind: CognitoErrorReason {
+    var cognitoErrorKind: ErrorReason {
         guard let cognitoError = self as? CognitoIdentityProviderErrorType else {
-            return .signupFailed
+            return .CognitoErrorReason.signUpFailed
         }
         
         switch cognitoError {
         case .codeMismatchException:
-            return .invalidConfirmationCode
+            return .CognitoErrorReason.invalidConfirmationCode
 
         case .expiredCodeException:
-            return .expiredConfirmationCode
+            return .CognitoErrorReason.expiredConfirmationCode
 
         case .invalidPasswordException:
-            return .invalidPassword
+            return .CognitoErrorReason.invalidPassword
 
         case .unauthorizedException:
-            return .unauthorized
+            return .CognitoErrorReason.unauthorized
             
         case .userNotConfirmedException:
-            return .userNotConfirmed
+            return .CognitoErrorReason.userNotConfirmed
 
         default:
             return .unknown

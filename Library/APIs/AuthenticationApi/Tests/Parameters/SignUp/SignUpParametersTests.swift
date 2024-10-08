@@ -1,8 +1,5 @@
 //
-//  SignUpParametersTests.swift
-//
-//  Created by PinkTech on 5/01/24.
-//  Copyright © 2023 PinkTech. All rights reserved.
+// Copyright © 2024 PinkTech. All rights reserved.
 //
 
 import Utility
@@ -14,7 +11,35 @@ import XCTest
 final class SignUpParametersTests: XCTestCase {
 
     // MARK: Tests
-    
+
+    func testThatValidatePasswordIntoSignUpParametersShouldFail() throws {
+        // Given
+        var validationError: ValidationsError!
+        let json = """
+        {
+            "countryCode": "CO",
+            "email": "email@pink-tech.io",
+            "firstName": "pink",
+            "lastName": "tech",
+            "password": "Pinktech",
+            "phone": "+57313333333"
+        }
+        """
+
+        // When
+        do {
+            _ = try SignUpParameters.validate(json: json)
+        } catch {
+            validationError = error as? ValidationsError
+        }
+
+        // Then
+        XCTAssertEqual(validationError.status, .badRequest)
+        XCTAssertEqual(validationError.description, "La contraseña no cumple con los criterios requeridos.")
+        XCTAssertEqual(validationError!.failures.first?.key, "password")
+        XCTAssertTrue(validationError!.failures.first!.result.isFailure)
+    }
+
     func testThatValidatePhoneIntoSignUpParametersShouldFail() throws {
         // Given
         var validationError: ValidationsError!
@@ -24,7 +49,7 @@ final class SignUpParametersTests: XCTestCase {
             "email": "email@pink-tech.io",
             "firstName": "pink",
             "lastName": "tech",
-            "password": "Pinktech!",
+            "password": "Pinktech27!",
             "phone": ""
         }
         """
@@ -52,7 +77,7 @@ final class SignUpParametersTests: XCTestCase {
             "email": "email@pink-tech.io",
             "firstName": "",
             "lastName": "tech",
-            "password": "Pinktech!",
+            "password": "Pinktech27!",
             "phone": "PinkTech1!"
         }
         """
@@ -80,7 +105,7 @@ final class SignUpParametersTests: XCTestCase {
             "email": "email@pink-tech.io",
             "firstName": "Pink",
             "lastName": "",
-            "password": "Pinktech!",
+            "password": "Pinktech27!",
             "phone": "PinkTech1!"
         }
         """
@@ -108,7 +133,7 @@ final class SignUpParametersTests: XCTestCase {
             "email": "email@pink-tech.io",
             "firstName": "Pink",
             "lastName": "Tech",
-            "password": "Pinktech!",
+            "password": "Pinktech27!",
             "phone": "PinkTech1!"
         }
         """
@@ -136,7 +161,7 @@ final class SignUpParametersTests: XCTestCase {
             "email": "email@pink-tech.io",
             "firstName": "",
             "lastName": "",
-            "password": "Pinktech!",
+            "password": "Pinktech27!",
             "phone": ""
         }
         """

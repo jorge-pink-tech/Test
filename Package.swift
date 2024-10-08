@@ -26,11 +26,14 @@ let package = Package(
             name: "App",
             dependencies: [
                 .product(name: "AuthenticationApi", package: "APIs"),
+                .product(name: "DatasourceApi", package: "APIs"),
                 .product(name: "UserApi", package: "APIs"),
             
                 .product(name: "Cognito", package: "Services"),
-                                
+                
+                .product(name: "DatasourceDatabase", package: "DataAccess"),
                 .product(name: "Storage", package: "DataAccess"),
+                .product(name: "UserDatabase", package: "DataAccess"),
                 
                 .product(name: "Fluent", package: "fluent"),
                 .product(name: "FluentPostgresDriver", package: "fluent-postgres-driver"),

@@ -49,7 +49,7 @@ public struct RedisStorage: XStorage {
                     switch result {
                     case let .failure(redisError):
                         let error = KountyError(
-                            kind: StorageErrorReason.initializationFailed,
+                            kind: .StorageErrorReason.initializationFailed,
                             underlyingError: redisError
                         )
                         
@@ -62,7 +62,7 @@ public struct RedisStorage: XStorage {
                     }
                 }
             } catch {
-                let error = KountyError(kind: StorageErrorReason.initializationFailed, underlyingError: error)
+                let error = KountyError(kind: .StorageErrorReason.initializationFailed, underlyingError: error)
                 continuation.resume(throwing: error)
             }
         }
@@ -89,18 +89,11 @@ public struct RedisStorage: XStorage {
                 .whenComplete { result in
                     switch result {
                     case let .failure(redisError):
-                        let error = KountyError(kind: StorageErrorReason.deleteFailed, underlyingError: redisError)
+                        let error = KountyError(kind: .StorageErrorReason.deleteFailed, underlyingError: redisError)
                         
                         continuation.resume(throwing: error)
                         
-                    case let .success(keysDeleted):
-                        guard keysDeleted > 0 else {
-                            let error = KountyError(kind: StorageErrorReason.deleteFailed)
-                            
-                            continuation.resume(with: .failure(error))
-                            return
-                        }
-                        
+                    case .success:
                         continuation.resume()
                     }
                 }
@@ -120,7 +113,7 @@ public struct RedisStorage: XStorage {
                 .whenComplete { result in
                     switch result {
                     case let .failure(redisError):
-                        let error = KountyError(kind: StorageErrorReason.readFailed, underlyingError: redisError)
+                        let error = KountyError(kind: .StorageErrorReason.readFailed, underlyingError: redisError)
                         
                         continuation.resume(throwing: error)
                         
@@ -135,7 +128,7 @@ public struct RedisStorage: XStorage {
                             
                             continuation.resume(with: .success(value))
                         } catch {
-                            let error = KountyError(kind: StorageErrorReason.readFailed, underlyingError: error)
+                            let error = KountyError(kind: .StorageErrorReason.readFailed, underlyingError: error)
                             
                             continuation.resume(throwing: error)
                         }
@@ -159,7 +152,7 @@ public struct RedisStorage: XStorage {
                     .whenComplete { result in
                         switch result {
                         case let .failure(redisError):
-                            let error = KountyError(kind: StorageErrorReason.writeFailed, underlyingError: redisError)
+                            let error = KountyError(kind: .StorageErrorReason.writeFailed, underlyingError: redisError)
                             
                             continuation.resume(throwing: error)
                             
@@ -168,7 +161,7 @@ public struct RedisStorage: XStorage {
                         }
                     }
             } catch {
-                let error = KountyError(kind: StorageErrorReason.writeFailed, underlyingError: error)
+                let error = KountyError(kind: .StorageErrorReason.writeFailed, underlyingError: error)
                 
                 continuation.resume(throwing: error)
             }

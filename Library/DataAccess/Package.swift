@@ -10,6 +10,9 @@ let package = Package(
         .macOS(.v10_15)
     ],
     products: [
+        .library(name: "DatasourceDatabase", targets: ["DatasourceDatabase"]),
+        .library(name: "DatasourceDatabaseTesting", targets: ["DatasourceDatabaseTesting"]),
+        
         .library(name: "Storage", targets: ["Storage"]),
         .library(name: "StorageTesting", targets: ["StorageTesting"]),
         
@@ -34,10 +37,45 @@ let package = Package(
 extension Target {
     static var allTargets: [Target] {
         [
+            datasourceDatabaseTargets(),
             storageTargets(),
             userDatabaseTargets()
         ]
             .flatMap { $0 }
+    }
+    
+    static func datasourceDatabaseTargets() -> [Target] {
+        [
+            .target(
+                name: "DatasourceDatabase",
+                dependencies: [
+                    .product(name: "Extensions", package: "Core"),
+                    .product(name: "Utility", package: "Core"),
+                    
+                    .product(name: "Fluent", package: "fluent"),
+                    .product(name: "FluentPostgresDriver", package: "fluent-postgres-driver"),
+                    .product(name: "Vapor", package: "vapor"),
+                ],
+                path: "DatasourceDatabase/Sources"
+            ),
+            .target(
+                name: "DatasourceDatabaseTesting",
+                dependencies: [
+                    "DatasourceDatabase",
+                    
+                    .product(name: "Utility", package: "Core"),
+                    .product(name: "Fluent", package: "fluent"),
+                ],
+                path: "DatasourceDatabase/Testing"
+            ),
+            .testTarget(
+                name: "DatasourceDatabaseTests",
+                dependencies: [
+                    "DatasourceDatabase",
+                ],
+                path: "DatasourceDatabase/Tests"
+            )
+        ]
     }
 
     static func storageTargets() -> [Target] {
@@ -56,7 +94,9 @@ extension Target {
                 name: "StorageTesting",
                 dependencies: [
                     "Storage",
-                    
+
+                    .product(name: "RediStack", package: "RediStack"),
+
                     .product(name: "Utility", package: "Core"),
                 ],
                 path: "Storage/Testing"
@@ -65,6 +105,8 @@ extension Target {
                 name: "StorageTests",
                 dependencies: [
                     "Storage",
+
+                    .product(name: "RediStack", package: "RediStack"),
                 ],
                 path: "Storage/Tests"
             )

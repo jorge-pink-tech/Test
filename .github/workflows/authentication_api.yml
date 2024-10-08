@@ -77,9 +77,9 @@ jobs:
       - name: Create Coverage Data
         run: |
           mkdir -p coverage
-          llvm-profdata merge -sparse .build/debug/codecov/*.profraw -o merged.profdata
+          llvm-profdata merge -sparse .build/x86_64-unknown-linux-gnu/debug/codecov/*.profraw -o merged.profdata
     
-          llvm-cov export --format=lcov --instr-profile=merged.profdata .build/debug/Library/APIs/AuthenticationApiTests.xctest > coverage/lcov.info
+          llvm-cov export --format=lcov --instr-profile=merged.profdata .build/x86_64-unknown-linux-gnu/debug/Library/APIs/AuthenticationApiTests.xctest > coverage/lcov.info
     
       - name: Validate Minimum Coverage
         uses: mattpolzin/swift-codecov-action@0.7.5

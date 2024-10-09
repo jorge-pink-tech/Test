@@ -46,7 +46,7 @@ jobs:
 
       - name: Install Swift
         run: |
-          ARCH=$(clang -print-target-triple)
+          ARCH=$(clang -print-target-triple | sed 's/pc/unknown/')
           echo ${ARCH}
           sudo apt-get update
           sudo apt-get install libcurl4 libpython3-dev libicu-dev libssl-dev libsqlite3-dev libblocksruntime-dev

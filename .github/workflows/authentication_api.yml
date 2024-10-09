@@ -75,7 +75,7 @@ jobs:
           mkdir -p coverage/APIs
           
           llvm-profdata merge -sparse ./Library/APIs/.build/debug/codecov/*.profraw -o merged.profdata       
-          llvm-cov export --format=lcov --instr-profile=merged.profdata ./Library/APIs/.build/debug/APIsPackageTests.xctest/Contents/${ARCH}/APIsPackageTests > coverage/APIs/lcov.info
+          llvm-cov export --format=lcov --instr-profile=merged.profdata ./Library/APIs/.build/debug/APIsPackageTests.xctest > coverage/APIs/lcov.info
     
       - name: Validate Minimum Coverage
         uses: mattpolzin/swift-codecov-action@0.7.5

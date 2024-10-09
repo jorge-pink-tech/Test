@@ -78,10 +78,10 @@ jobs:
           llvm-cov export --format=lcov --instr-profile=merged.profdata ./Library/APIs/.build/debug/APIsPackageTests.xctest > coverage/APIs/lcov.info
     
       - name: Validate Minimum Coverage
-        uses: mattpolzin/swift-codecov-action@0.7.5
+        uses: VeryGoodOpenSource/very_good_coverage@v2
         with:
-         MINIMUM_COVERAGE: 0
-         INCLUDE_TESTS: 'true'
+         path: 'coverage/APIs/lcov.info'
+         min_coverage: 1        
          
       - name: Post Test coverage
         uses: romeovs/lcov-reporter-action@v0.3.1

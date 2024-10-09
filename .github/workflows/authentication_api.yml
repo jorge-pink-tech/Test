@@ -70,11 +70,10 @@ jobs:
         run: swift test --package-path ./Library/APIs --filter AuthenticationApiTests
 
       - name: Create Coverage Data
-        uses: mattpolzin/swift-codecov-action@0.7.5
-        with:
-         MINIMUM_COVERAGE: 0
-         INPUT_CODECOV_JSON: ./Library/APIs
-         INCLUDE_TESTS: 'true'
+        run: |
+          profraw_file=$(find ./Library/APIs/.build/debug/codecov -name "*.profraw")
+          
+          llvm-cov export --format=lcov --instr-profile=$profraw_file ./Library/APIs/.build/debug/AuthenticationApiTests.xctest > coverage/AuthenticationApi/lcov.info
     
       - name: Validate Minimum Coverage
         uses: mattpolzin/swift-codecov-action@0.7.5

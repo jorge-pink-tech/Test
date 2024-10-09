@@ -71,9 +71,8 @@ jobs:
 
       - name: Create Coverage Data
         run: |
-          echo "Searching for .profraw files in all directories..."
-          find . -name "*.profraw"
-          
+          mkdir -p coverage/AuthenticationApi
+
           profraw_file=$(find ./Library/APIs/.build -name "*.profraw" | head -n 1)
           
           llvm-cov export --format=lcov --instr-profile=$profraw_file ./Library/APIs/.build/debug/AuthenticationApiTests.xctest > coverage/AuthenticationApi/lcov.info

@@ -67,7 +67,7 @@ jobs:
           echo "DATABASE_PASSWORD=vapor_password" >> $GITHUB_ENV
 
       - name: Run Unit Tests
-        run: swift test --filter AuthenticationApiTests --enable-code-coverage --verbose
+        run: swift test --package-path ./Library/APIs --filter AuthenticationApiTests
       
       - name: Print Profraw Files
         run: |
@@ -82,7 +82,7 @@ jobs:
       - name: Create Coverage Data
         run: |
           llvm-profdata merge -sparse .build/x86_64-unknown-linux-gnu/debug/codecov/*.profraw -o merged-AuthenticationApi.profdata
-          llvm-cov export --format=lcov --instr-profile=merged-AuthenticationApi.profdata .build/x86_64-unknown-linux-gnu/debug/AuthenticationApiTests.xctest > coverage/AuthenticationApi/lcov.info
+          llvm-cov export --format=lcov --instr-profile=merged-AuthenticationApi.profdata .build/x86_64-unknown-linux-gnu/Library/APIs/.debug/AuthenticationApiTests.xctest > coverage/AuthenticationApi/lcov.info
     
       - name: Validate Minimum Coverage
         uses: mattpolzin/swift-codecov-action@0.7.5

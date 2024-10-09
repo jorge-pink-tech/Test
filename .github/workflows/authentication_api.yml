@@ -67,7 +67,7 @@ jobs:
           echo "DATABASE_PASSWORD=vapor_password" >> $GITHUB_ENV
 
       - name: Run Unit Tests
-        run: swift test --package-path ./Library/APIs --filter AuthenticationApiTests
+        run: swift test --enable-code-coverage --package-path ./Library/APIs --filter AuthenticationApiTests
 
       - name: Create Coverage Data
         run: |

@@ -42,14 +42,14 @@ jobs:
           
           llvm-profdata merge -sparse .build/debug/codecov/*.profraw -o merged.profdata       
           llvm-cov export --format=lcov \
-          --ignore-filename-regex="APIS|Core|DataAccess|Services|.build" \
+          --ignore-filename-regex="APIs|Core|DataAccess|Services|.build" \
           --instr-profile=merged.profdata \
           .build/debug/kounty-apiPackageTests.xctest > coverage/app-full-lcov.info
 
           if [ -f "coverage/app-full-lcov.info" ]; then
             echo "LCOV report generated successfully at coverage/app-full-lcov.info"
 
-            # Filter the report to only include sections related to files under APIs/AuthenticationApi/Sources
+            # Filter the report to only include sections related to files under Sources
             awk '/^SF:.*\/Sources/{keep=1} /^SF:/&&!/Sources/{keep=0} {if(keep) print}' coverage/app-full-lcov.info > coverage/app-lcov.info
 
             # Check if the filtered report was generated successfully

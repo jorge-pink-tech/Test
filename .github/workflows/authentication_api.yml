@@ -68,16 +68,6 @@ jobs:
 
       - name: Run Unit Tests
         run: swift test --package-path ./Library/APIs --filter AuthenticationApiTests
-      
-      - name: Print Profraw Files
-        run: |
-         echo "Searching for .profraw files in the build directory..."
-         find .build -name "*.profraw"
-      
-      - name: Print XCTest Files
-        run: |
-         echo "Searching for .xctest files in the build directory..."
-         find .build -name "*.xctest"
 
       - name: Create Coverage Data
         run: |

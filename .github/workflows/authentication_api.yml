@@ -71,6 +71,7 @@ jobs:
 
       - name: Create Coverage Data
         run: |
+          find ./Library/APIs/.build/debug -name "*.profraw"
           ARCH=$(uname -m)-$(uname -s | tr '[:upper:]' '[:lower:]')-gnu
           mkdir -p coverage/APIs
           

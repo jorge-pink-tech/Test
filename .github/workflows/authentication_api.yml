@@ -76,18 +76,35 @@ jobs:
           
           llvm-profdata merge -sparse ./Library/APIs/.build/debug/codecov/*.profraw -o merged.profdata       
           llvm-cov export --format=lcov \
-          --ignore-filename-regex="(.*/.build/checkouts/.*|.*/Packages/.*)" \
+          --ignore-filename-regex="Core|DataAccess|Services|.build" \
           --instr-profile=merged.profdata \
-          ./Library/APIs/.build/debug/APIsPackageTests.xctest > coverage/APIs/lcov.info
-    
+          ./Library/APIs/.build/debug/APIsPackageTests.xctest > coverage/APIs/authentication-api-full-lcov.info
+
+          if [ -f "coverage/APIs/fauthentication-api-full-lcov.info" ]; then
+            echo "LCOV report generated successfully at coverage/APIs/lcov.info"
+
+            # Filter the report to only include sections related to files under APIs/AuthenticationApi/Sources
+            awk '/^SF:.*APIs\/AuthenticationApi\/Sources/{keep=1} /^SF:/&&!/APIs\/AuthenticationApi\/Sources/{keep=0} {if(keep) print}' coverage/APIs/authentication-api-full-lcov.info > coverage/APIs/authentication-api-lcov.info
+
+            # Check if the filtered report was generated successfully
+            if [ -f "coverage/APIs/authentication-api-lcov.info" ]; then
+                echo "Filtered LCOV report created at coverage/APIs/authentication-api-lcov.info"
+            else
+                echo "Failed to create filtered LCOV report."
+                exit 1
+            fi
+        else
+            echo "Failed to generate LCOV report."
+            exit 1
+        fi
+
       - name: Validate Minimum Coverage
         uses: VeryGoodOpenSource/very_good_coverage@v2
         with:
-         path: 'coverage/APIs/lcov.info'
+         path: 'coverage/APIs/authentication-api-lcov.info'
          min_coverage: 1        
-         exclude: '**/*_observer.dart **/change.dart'
          
       - name: Post Test coverage
         uses: romeovs/lcov-reporter-action@v0.3.1
         with:
-         lcov-file: coverage/APIs/lcov.info
+         lcov-file: coverage/APIs/authentication-api-lcov.info

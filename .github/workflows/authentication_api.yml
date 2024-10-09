@@ -71,8 +71,8 @@ jobs:
 
       - name: Create Coverage Data
         run: |
-          llvm-profdata merge -sparse .build/x86_64-unknown-linux-gnu/debug/codecov/*.profraw -o merged-AuthenticationApi.profdata
-          llvm-cov export --format=lcov --instr-profile=merged-AuthenticationApi.profdata .build/x86_64-unknown-linux-gnu/Library/APIs/.debug/AuthenticationApiTests.xctest > coverage/AuthenticationApi/lcov.info
+          llvm-profdata merge -sparse ./Library/APIs/.build/debug/codecov/*.profraw -o merged-AuthenticationApi.profdata
+          llvm-cov export --format=lcov --instr-profile=merged-AuthenticationApi.profdata ./Library/APIs/.debug/AuthenticationApiTests.xctest > coverage/AuthenticationApi/lcov.info
     
       - name: Validate Minimum Coverage
         uses: mattpolzin/swift-codecov-action@0.7.5

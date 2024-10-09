@@ -39,8 +39,30 @@ jobs:
       - name: Create Coverage Data
         run: |
           mkdir -p coverage
-          llvm-profdata merge -sparse .build/debug/codecov/*.profraw -o merged.profdata
-          llvm-cov export --format=lcov --instr-profile=merged.profdata .build/debug/kounty-apiPackageTests.xctest > coverage/lcov.info
+          
+          llvm-profdata merge -sparse .build/debug/codecov/*.profraw -o merged.profdata       
+          llvm-cov export --format=lcov \
+          --ignore-filename-regex="APIS|Core|DataAccess|Services|.build" \
+          --instr-profile=merged.profdata \
+          .build/debug/kounty-apiPackageTests.xctest > coverage/app-full-lcov.info
+
+          if [ -f "coverage/app-full-lcov.info" ]; then
+            echo "LCOV report generated successfully at coverage/app-full-lcov.info"
+
+            # Filter the report to only include sections related to files under APIs/AuthenticationApi/Sources
+            awk '/^SF:.*\/Sources/{keep=1} /^SF:/&&!/Sources/{keep=0} {if(keep) print}' coverage/app-full-lcov.info > coverage/app-lcov.info
+
+            # Check if the filtered report was generated successfully
+            if [ -f "coverage/app-lcov.info" ]; then
+                echo "Filtered LCOV report created at coverage/app-lcov.info"
+            else
+                echo "Failed to create filtered LCOV report."
+                exit 1
+            fi
+          else
+            echo "Failed to generate LCOV report."
+            exit 1
+          fi
     
       - name: Validate Minimum Coverage
         uses: mattpolzin/swift-codecov-action@0.7.5

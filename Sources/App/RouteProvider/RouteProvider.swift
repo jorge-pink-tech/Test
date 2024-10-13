@@ -15,6 +15,10 @@ import Vapor
 /// The `RouteProvider` is responsible for setting up and registering API routes for the application.
 /// It configures various middleware, repositories, and controllers necessary for the API endpoints.
 struct RouteProvider {
+    // MARK: - Private Properties
+    
+    private let logger = Logger(label: "com.kounty.logger.database")
+    
     // MARK: - Properties
     
     let application: Application
@@ -29,24 +33,17 @@ struct RouteProvider {
     ///
     /// - Throws: An error if any route registration or service setup fails.
     func register() async throws {
-        let logger = Logger(label: "com.kounty.logger.database")
         let eventLoop = application.eventLoopGroup.next()
-        let redisStorage = try await RedisStorage.make(hostname: Environment.get("DATABASE_HOST") ?? "localhost")
                 
         guard let database = application.databases.database(logger: logger, on: eventLoop) else {
             return
         }
         
-        guard let datasourceDatabase = application.databases.database(logger: logger, on: eventLoop) else {
-            return
-        }
-        
         // Services
         let cognitoClient = CognitoClient(clientId: "5cjb30aes7v4tdcn4qnel3lf9v", poolId: "us-east-1_CTA9LEI3X")
+        let redisStorage = try await RedisStorage.make(hostname: Environment.get("DATABASE_HOST") ?? "localhost")
         
         // Repositories
-        let authenticationCredentialRepository = AuthenticationCredentialRepositoryImpl(database: datasourceDatabase)
-        let datasourceRepository = DatasourceRepositoryImpl(datasourceDatabase: datasourceDatabase)
         let userRepository = UserRepositoryImpl(userDatabase: database)
         let authenticationRepository = AuthenticationRepositoryImpl(
             cognitoAuthenticatableClient: cognitoClient,
@@ -55,14 +52,6 @@ struct RouteProvider {
 
         // Controllers
         let authenticationController = AuthenticationController(authenticationRepository: authenticationRepository)
-        let authenticationCredentialController = AuthenticationCredentialController(
-            authenticationCredentialRepository: authenticationCredentialRepository
-        )
-
-        let datasourceController = DatasourceController(
-            authenticationCredentialRepository: authenticationCredentialRepository,
-            datasourceRepository: datasourceRepository
-        )
 
         // Routes
         let api = application
@@ -72,7 +61,6 @@ struct RouteProvider {
         try api.register(collection: authenticationController)
         
         // Authenticated routes
-
         let authenticatedApi = api.grouped(
             AuthenticatorMiddleware(
                 authenticationRepository: authenticationRepository,
@@ -80,12 +68,42 @@ struct RouteProvider {
                 userRepository: userRepository
             )
         )
+        
+        // Other Routes
+        try registerDatasourceRoutes(on: authenticatedApi, logger: logger, eventLoop: eventLoop)
+    }
+    
+    // MARK: Private methods
+    
+    private func registerDatasourceRoutes(
+        on routesBuilder: RoutesBuilder,
+        logger: Logger,
+        eventLoop: EventLoop
+    ) throws {
+        
+        guard let database = application.databases.database(.datasourceDatabaseId, logger: logger, on: eventLoop) else {
+            return
+        }
+        
+        // Repositories
+        let authenticationCredentialRepository = AuthenticationCredentialRepositoryImpl(database: database)
+        let datasourceRepository = DatasourceRepositoryImpl(datasourceDatabase: database)
+        
+        // Controllers
+        let authenticationCredentialController = AuthenticationCredentialController(
+            authenticationCredentialRepository: authenticationCredentialRepository
+        )
 
-        try authenticatedApi
+        let datasourceController = DatasourceController(
+            authenticationCredentialRepository: authenticationCredentialRepository,
+            datasourceRepository: datasourceRepository
+        )
+        
+        try routesBuilder
             .grouped("datasources")
             .register(collection: datasourceController)
 
-        try authenticatedApi
+        try routesBuilder
             .grouped("authentication-credentials")
             .register(collection: authenticationCredentialController)
     }

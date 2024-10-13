@@ -55,11 +55,15 @@ struct RouteProvider {
 
         // Controllers
         let authenticationController = AuthenticationController(authenticationRepository: authenticationRepository)
-        let datasourceController = DatasourceController(datasourceRepository: datasourceRepository)
         let authenticationCredentialController = AuthenticationCredentialController(
             authenticationCredentialRepository: authenticationCredentialRepository
         )
-        
+
+        let datasourceController = DatasourceController(
+            authenticationCredentialRepository: authenticationCredentialRepository,
+            datasourceRepository: datasourceRepository
+        )
+
         // Routes
         let api = application
             .grouped("api")
@@ -68,7 +72,7 @@ struct RouteProvider {
         try api.register(collection: authenticationController)
         
         // Authenticated routes
-        
+
         let authenticatedApi = api.grouped(
             AuthenticatorMiddleware(
                 authenticationRepository: authenticationRepository,
@@ -76,13 +80,13 @@ struct RouteProvider {
                 userRepository: userRepository
             )
         )
-        
+
         try authenticatedApi
             .grouped("datasources")
             .register(collection: datasourceController)
 
         try authenticatedApi
             .grouped("authentication-credentials")
-            .register(collection: authenticationCredentialController)            
+            .register(collection: authenticationCredentialController)
     }
 }

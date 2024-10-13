@@ -94,37 +94,6 @@ public final class AuthenticationCredentialDTO: Model {
         /// The name of the `Status` enum.
         static let name = "AuthenticationCredentialStatus"
     }
-
-    // MARK: Initializers
-    
-    /// Creates a new instance of the `AuthenticationCredentialDTO`.
-    public init() {}
-    
-    /// Initializes an `AuthenticationCredentialDTO` with specific parameters.
-    ///
-    /// - Parameters:
-    ///   - id: The unique identifier for the credential (optional).
-    ///   - accessToken: The access token used for authentication.    
-    ///   - name: A name that identifies the credential.
-    ///   - status: The status of the credential.
-    ///   - userId: The ID of the user owner of this credential.
-    ///   - username: The username associated with the credential (optional).
-    public init(
-        id: UUID? = nil,
-        accessToken: String?,
-        name: String,
-        status: Status,
-        userId: UUID,
-        username: String
-    ) {
-
-        self.id = id
-        self.accessToken = accessToken
-        self.name = name
-        self.status = status
-        self.userId = userId
-        self.username = username
-    }
     
     // MARK: Static methods
     
@@ -159,5 +128,36 @@ public final class AuthenticationCredentialDTO: Model {
                     failureReason: "No se encontro la credencial."
                 )
             )
+    }
+
+    // MARK: Initializers
+    
+    /// Creates a new instance of the `AuthenticationCredentialDTO`.
+    public init() {}
+    
+    /// Initializes an `AuthenticationCredentialDTO` with specific parameters.
+    ///
+    /// - Parameters:
+    ///   - id: The unique identifier for the credential (optional).
+    ///   - accessToken: The access token used for authentication.    
+    ///   - name: A name that identifies the credential.
+    ///   - status: The status of the credential.
+    ///   - userId: The ID of the user owner of this credential.
+    ///   - username: The username associated with the credential (optional).
+    public init(
+        id: UUID? = nil,
+        accessToken: String?,
+        name: String,
+        status: Status,
+        userId: UUID,
+        username: String
+    ) {
+
+        self.id = id
+        self.accessToken = accessToken
+        self.name = name
+        self.status = status
+        self.userId = userId
+        self.username = username
     }
 }

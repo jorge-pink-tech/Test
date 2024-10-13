@@ -45,8 +45,9 @@ extension Target {
                 name: "CoreTests",
                 dependencies: [
                     "Extensions",
+                    "Utility",
                 ],
-                path: "Tests"
+                path: "Extensions/Tests"
             )
         ]
     }

@@ -37,6 +37,13 @@ extension SignUpParameters: Validatable {
             is: !.empty,
             customFailureDescription: "El codigo del pais no puede estar vacio."
         )
+
+        validations.add(
+            "email",
+            as: String.self,
+            is: .email,
+            customFailureDescription: "El email no cuenta con el formato correcto."
+        )
         
         validations.add(
             "firstName",
@@ -50,6 +57,13 @@ extension SignUpParameters: Validatable {
             as: String.self,
             is: !.empty,
             customFailureDescription: "El apellido no puede estar vacio."
+        )
+
+        validations.add(
+            "password",
+            as: String.self,
+            is: .isValidPassword,
+            customFailureDescription: "La contraseña no cumple con los criterios requeridos."
         )
         
         validations.add(

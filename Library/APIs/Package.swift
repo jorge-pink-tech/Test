@@ -12,6 +12,7 @@ let package = Package(
     ],
     products: [
         .library(name: "AuthenticationApi", targets: ["AuthenticationApi"]),
+        .library(name: "DatasourceApi", targets: ["DatasourceApi"]),
         .library(name: "UserApi", targets: ["UserApi"]),
     ],
     dependencies: [
@@ -33,6 +34,7 @@ extension Target {
     static var allTargets: [Target] {
         [
             authenticationApiTargets(),
+            datasourceApiTargets(),
             userApiTargets()
         ]
             .flatMap { $0 }
@@ -64,6 +66,30 @@ extension Target {
                     .product(name: "XCTVapor", package: "vapor"),
                 ],
                 path: "AuthenticationApi/Tests"
+            )
+        ]
+    }
+    
+    static func datasourceApiTargets() -> [Target] {
+        [
+            .target(
+                name: "DatasourceApi",
+                dependencies: [
+                    .product(name: "DatasourceDatabase", package: "DataAccess"),
+                    
+                    .product(name: "Utility", package: "Core"),
+                    .product(name: "Vapor", package: "vapor"),
+                ],
+                path: "DatasourcesApi/Sources"
+            ),
+            .testTarget(
+                name: "DatasourceApiTests",
+                dependencies: [
+                    "DatasourceApi",
+                    
+                    .product(name: "XCTVapor", package: "vapor"),
+                ],
+                path: "DatasourcesApi/Tests"
             )
         ]
     }

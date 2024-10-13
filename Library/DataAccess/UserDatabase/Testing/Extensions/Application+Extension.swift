@@ -7,29 +7,27 @@ import FluentPostgresDriver
 import UserDatabase
 import XCTVapor
 
-public extension Application {
+extension Application {
     /// Returns a testable instance of the `Application`.
-    func testableUserDatabase() throws -> Database {
-        let databaseID = DatabaseID(string: "kounty-users-test")
+    public func testableUserDatabase() throws -> Database {
+        let userDatabaseID = DatabaseID(string: "DatabaseId")        
         let databaseConfiguration = DatabaseConfigurationFactory.postgres(
             configuration: .init(
                 hostname: Environment.get("DATABASE_HOST") ?? "localhost",
-                port: 5432,//Environment.get("DATABASE_PORT").flatMap(Int.init(_:)) ?? SQLPostgresConfiguration.ianaPortNumber,
+                port: Environment.get("DATABASE_PORT").flatMap(Int.init) ?? SQLPostgresConfiguration.ianaPortNumber,
                 username: Environment.get("DATABASE_USERNAME") ?? "postgres",
                 password: Environment.get("DATABASE_PASSWORD") ?? "123456",
-                database: Environment.get("DATABASE_NAME") ?? databaseID.string,
+                database: Environment.get("DATABASE_NAME") ?? "test",
                 tls: .prefer(try .init(configuration: .clientDefault))
             )
         )
         
-        
-        migrations.add(UserMigration(), to: databaseID)
-        
-        databases.use(databaseConfiguration, as: databaseID)
+        migrations.add(CreateUserDatabaseMigration())
+        databases.use(databaseConfiguration, as: userDatabaseID)
 
         try autoRevert().wait()
         try autoMigrate().wait()
 
-        return databases.database(databaseID, logger: Logger(label: #file), on: eventLoopGroup.next())!
+        return databases.database(userDatabaseID, logger: Logger(label: #file), on: eventLoopGroup.next())!
     }
 }

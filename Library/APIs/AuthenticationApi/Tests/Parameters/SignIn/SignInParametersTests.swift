@@ -1,8 +1,5 @@
 //
-//  SignInParametersTests.swift
-//
-//  Created by PinkTech on 8/01/24.
-//  Copyright © 2023 PinkTech. All rights reserved.
+// Copyright © 2024 PinkTech. All rights reserved.
 //
 
 import Utility

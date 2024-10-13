@@ -5,7 +5,27 @@
 import Vapor
 
 /// Protocol for establishing reasons with the domain of Errors.
-public protocol ErrorReason: Equatable {}
+public struct ErrorReason: Equatable, RawRepresentable {
+    // MARK: - Properties
+
+    /// The corresponding value of the raw type.
+    public let rawValue: String
+    
+    // MARK: - Static Properties
+    
+    /// Unknown error.
+    public static let unknown = ErrorReason(rawValue: "UNKNOWN")
+
+    // MARK: Initializer
+    
+    /// Creates a new instance with the specified raw value.
+    ///
+    /// If there is no value of the type that corresponds with the specified raw
+    /// value, this initializer returns `nil`.
+    public init(rawValue: String) {
+        self.rawValue = rawValue
+    }
+}
 
 /// A wrapper that contains an error reason as well as an underlying error.
 public struct KountyError: LocalizedError {
@@ -19,7 +39,7 @@ public struct KountyError: LocalizedError {
     public let line: Int
 
     /// The reason the error was triggered.
-    public let kind: any ErrorReason
+    public let kind: ErrorReason
 
     /// The underliying error.
     public let underlyingError: Error?
@@ -41,7 +61,7 @@ public struct KountyError: LocalizedError {
     ///   - line: The affected line in the source code.
     ///   - underlyingError: The underliying error.
     public init(
-        kind: any ErrorReason,
+        kind: ErrorReason,
         failureReason: String? = nil,
         underlyingError: Error? = nil,
         column: Int = #column,

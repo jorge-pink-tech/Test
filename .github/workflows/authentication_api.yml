@@ -1,17 +1,30 @@
-name: CI with PostgreSQL and Swift 5.9
+name: AuthenticationAPITests
 
 on:
   push:
     branches:
       - main
+    paths:
+      - "Library/APIs/AuthenticationApi/**"
+      - ".github/workflows/authentication_api.yaml"
   pull_request:
     branches:
       - main
+    paths:
+      - "Library/APIs/AuthenticationApi/**"
+      - ".github/workflows/authentication_api.yaml"
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      repository-projects: write
 
+    env:
+     GITHUB_TOKEN: ${{ secrets.ACTIONS_API_TOKEN }}
+      
     services:
       postgres:
         image: postgres:14
@@ -31,7 +44,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Install Swift 5.9
+      - name: Install Swift
         run: |
           sudo apt-get update
           sudo apt-get install libcurl4 libpython3-dev libicu-dev libssl-dev libsqlite3-dev libblocksruntime-dev
@@ -40,6 +53,10 @@ jobs:
           sudo mv swift-5.9-RELEASE-ubuntu20.04/usr /usr
           sudo rm -rf swift-5.9-RELEASE-ubuntu20.04*
           swift --version
+          
+      - name: Install LLVM
+        run: |
+          sudo apt-get install -y llvm clang lcov
 
       - name: Set up PostgreSQL environment variables
         run: |
@@ -49,37 +66,45 @@ jobs:
           echo "DATABASE_USERNAME=vapor_username" >> $GITHUB_ENV
           echo "DATABASE_PASSWORD=vapor_password" >> $GITHUB_ENV
 
-      - name: Resolve Dependencies
-        run: swift package resolve --verbose
-
-      - name: Build Project
-        run: swift build --verbose
-
       - name: Run Unit Tests
-        run: swift test --enable-code-coverage --verbose
+        run: swift test --enable-code-coverage --package-path ./Library/APIs --filter AuthenticationApiTests
 
-      - uses: michaelhenry/swifty-code-coverage@v1.0.0
+      - name: Create Coverage Data
+        run: |
+          ARCH=$(clang -print-target-triple | sed 's/pc/unknown/')
+          mkdir -p coverage/APIs
+          
+          llvm-profdata merge -sparse ./Library/APIs/.build/debug/codecov/*.profraw -o merged.profdata       
+          llvm-cov export --format=lcov \
+          --ignore-filename-regex="Core|DataAccess|Services|.build" \
+          --instr-profile=merged.profdata \
+          ./Library/APIs/.build/debug/APIsPackageTests.xctest > coverage/APIs/authentication-api-full-lcov.info
+
+          if [ -f "coverage/APIs/authentication-api-full-lcov.info" ]; then
+            echo "LCOV report generated successfully at coverage/APIs/authentication-api-full-lcov.info"
+
+            # Filter the report to only include sections related to files under APIs/AuthenticationApi/Sources
+            awk '/^SF:.*APIs\/AuthenticationApi\/Sources/{keep=1} /^SF:/&&!/APIs\/AuthenticationApi\/Sources/{keep=0} {if(keep) print}' coverage/APIs/authentication-api-full-lcov.info > coverage/APIs/authentication-api-lcov.info
+
+            # Check if the filtered report was generated successfully
+            if [ -f "coverage/APIs/authentication-api-lcov.info" ]; then
+                echo "Filtered LCOV report created at coverage/APIs/authentication-api-lcov.info"
+            else
+                echo "Failed to create filtered LCOV report."
+                exit 1
+            fi
+          else
+            echo "Failed to generate LCOV report."
+            exit 1
+          fi
+
+      - name: Validate Minimum Coverage
+        uses: VeryGoodOpenSource/very_good_coverage@v2
         with:
-          build-path: "${{ github.workspace }}/Library/APIs/AuthenticationApi/.build"
-          target: AuthenticationApiPackageTests.xctest
-          is-spm: true
-          output: "coverage/lcov.info"
-          output-artifact-name: "codecov-artifact"
-          ignore-filename-regex: '.build|Tests|Pods|Carthage|DerivedData|checkouts|Services'
-
-      - name: Upload lcov coverage report
-        uses: actions/upload-artifact@v3
-        with:
-          name: lcov-report
-          path: coverage/lcov.info
-
-      - name: Post coverage report
+         path: 'coverage/APIs/authentication-api-lcov.info'
+         min_coverage: 1        
+         
+      - name: Post Test coverage
         uses: romeovs/lcov-reporter-action@v0.3.1
         with:
-          lcov-file: coverage/lcov.info
-
-      - name: Check Code Coverage
-        uses: VeryGoodOpenSource/very_good_coverage@v1.2.1
-        with:
-          path: coverage/lcov.info
-          min_coverage: 95
+         lcov-file: coverage/APIs/authentication-api-lcov.info

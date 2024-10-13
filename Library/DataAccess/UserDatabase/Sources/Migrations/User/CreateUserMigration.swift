@@ -6,18 +6,13 @@ import Fluent
 import Utility
 
 /// Handles the `UserDTO`database migrations.
-public struct UserMigration: AsyncMigration {
-    // MARK: Initializer
-    
-    /// Creates a new instance of the `UserMigration`.
-    public init() {}
-    
+struct CreateUserMigration: AsyncMigration {
     // MARK: Migration
     
     /// Called when a migration is executed.
     ///
     /// - Parameter database: `Database` to run the migration on,
-    public func prepare(on database: Database) async throws {
+    func prepare(on database: Database) async throws {
         try await database.schema(UserDTO.schema)
             .id()
             .field(.string(UserDTO.CodingKeys.countryCode), .string, .required)
@@ -35,7 +30,7 @@ public struct UserMigration: AsyncMigration {
     /// Called when the changes from a migration are reverted.
     ///
     /// - Parameter database: `Database` to revert the migration on.
-    public func revert(on database: Database) async throws {
+    func revert(on database: Database) async throws {
         try await database.schema(UserDTO.schema).delete()
     }
 }

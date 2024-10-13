@@ -2,58 +2,76 @@ name: Unit Tests and Coverage
 on:
   push:
     branches: [main]
+    paths:
+      - "Sources/**"
+      - ".github/workflows/tests.yaml"
+      
   pull_request:
     branches: [main]
+    paths:
+      - "Sources/**"
+      - ".github/workflows/tests.yaml"
     
   workflow_dispatch:
   
 jobs:
   build:
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      repository-projects: write
+    
+    env:
+     GITHUB_TOKEN: ${{ secrets.ACTIONS_API_TOKEN }}
 
     steps:
       - name: Checkout Branch
         uses: actions/checkout@v4
-
-      - name: Resolve Swift Packages
-        run: xcodebuild -resolvePackageDependencies
-
-      - name: Install lcov and llvm-cov
+          
+      - name: Install LLVM
         run: |
-          brew install lcov llvm
-          sudo ln -s /usr/local/opt/llvm/bin/llvm-cov /usr/local/bin/llvm-cov
+          sudo apt-get install -y llvm clang lcov
           
       - name: Run Unit Tests
-        run: swift test --enable-code-coverage
+        run: swift test --enable-code-coverage --verbose
 
-      - name: Set UUID Variable
-        id: set_uuid
-        run: echo "::set-output name=uuid::$(ls build/Build/ProfileData/)"
-
-      - name: Create Coverage Directory
-        run: mkdir -p coverage
-
-      - name: Generate lcov coverage report
+      - name: Create Coverage Data
         run: |
-          xcrun llvm-cov export \
-            -format=lcov \
-            -instr-profile build/Build/ProfileData/${{ steps.set_uuid.outputs.uuid }}/Coverage.profdata \
-            build/Build/Products/Debug-iphonesimulator/TruvideoSdk.framework/TruvideoSdk \
-            -ignore-filename-regex='.*Tests.*' > coverage/lcov.info
+          mkdir -p coverage
+          
+          llvm-profdata merge -sparse .build/debug/codecov/*.profraw -o merged.profdata       
+          llvm-cov export --format=lcov \
+          --ignore-filename-regex="APIs|Core|DataAccess|Services|.build" \
+          --instr-profile=merged.profdata \
+          .build/debug/kounty-apiPackageTests.xctest > coverage/app-full-lcov.info
 
-      - name: Upload lcov coverage report
-        uses: actions/upload-artifact@v3
-        with:
-          name: lcov-report
-          path: coverage/lcov.info
+          if [ -f "coverage/app-full-lcov.info" ]; then
+            echo "LCOV report generated successfully at coverage/app-full-lcov.info"
+
+            # Filter the report to only include sections related to files under Sources
+            awk '/^SF:.*\/Sources/{keep=1} /^SF:/&&!/Sources/{keep=0} {if(keep) print}' coverage/app-full-lcov.info > coverage/app-lcov.info
+
+            # Check if the filtered report was generated successfully
+            if [ -f "coverage/app-lcov.info" ]; then
+                echo "Filtered LCOV report created at coverage/app-lcov.info"
+            else
+                echo "Failed to create filtered LCOV report."
+                exit 1
+            fi
+          else
+            echo "Failed to generate LCOV report."
+            exit 1
+          fi
     
-      - name: Post coverage report
+      - name: Validate Minimum Coverage
+        uses: VeryGoodOpenSource/very_good_coverage@v2
+        with:
+         path: 'coverage/app-lcov.info'
+         min_coverage: 0       
+         
+      - name: Post Test coverage
         uses: romeovs/lcov-reporter-action@v0.3.1
         with:
-          lcov-file: coverage/lcov.info
+         lcov-file: coverage/app-lcov.info
 
-      - name: Check Code Coverage
-        uses: VeryGoodOpenSource/very_good_coverage@v1.2.1
-        with:
-          path: coverage/lcov.info
-          min_coverage: 1

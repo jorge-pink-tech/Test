@@ -8,11 +8,19 @@ import Vapor
 extension Error {
     /// Casts the instance as `KountyAbortError` or returns a default one.
     public func asAbortError() -> KountyAbortError {
-        self as? KountyAbortError ?? .abort(.internalServerError, reason: localizedDescription, underlyingError: self)
+        guard let error = self as? KountyError else {
+            return self as? KountyAbortError ?? .abort(
+                .internalServerError,
+                reason: localizedDescription,
+                underlyingError: self
+            )
+        }
+        
+        return error.asAbortError(.internalServerError)
     }
     
     /// Casts the instance as `KountyError` or returns a default one.
-    public func asKountyError(or defaultKind: @autoclosure () -> any ErrorReason) -> KountyError {
+    public func asKountyError(or defaultKind: @autoclosure () -> ErrorReason = .unknown) -> KountyError {
         self as? KountyError ?? KountyError(kind: defaultKind(), underlyingError: self)
     }
 }
@@ -22,7 +30,7 @@ extension KountyError {
     ///
     /// - Parameter status: The HTTP response status.
     public func asAbortError(_ status: HTTPResponseStatus, failureReason: String? = nil) -> KountyAbortError {
-       .abort(status, reason: localizedDescription, underlyingError: self)
+       .abort(status, reason: failureReason ?? localizedDescription, underlyingError: self)
     }
 }
 

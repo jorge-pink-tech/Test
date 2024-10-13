@@ -8,7 +8,7 @@ import Vapor
 extension Optional {
     /// Unwraps the optional value or throws an error if the `WrappedType` is nil.
     ///
-    /// - Parameter defaultValue: A closure to use as a fallback value.
+    /// - Parameter error: A closure to use as a fallback value.
     /// - Returns: The `WrappedType`.
     public func unwrap(or error: @autoclosure () -> Error) throws -> Self.WrappedType {
         switch self {

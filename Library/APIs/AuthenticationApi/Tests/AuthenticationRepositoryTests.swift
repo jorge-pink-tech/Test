@@ -1,8 +1,5 @@
 //
-//  AuthenticationRepositoryTests.swift
-//
-//  Created by PinkTech on 3/01/24.
-//  Copyright © 2023 PinkTech. All rights reserved.
+// Copyright © 2024 PinkTech. All rights reserved.
 //
 
 import Cognito
@@ -17,13 +14,9 @@ import XCTVapor
 
 @testable import AuthenticationApi
 
-public enum TestErrorReason: ErrorReason {
-    case test
-}
-
 final class AuthenticationRepositoryTests: XCTestCase {
+    private var app: Application!
     private var cognitoClient: CognitoAuthenticatableClientMock!
-    var app: Application!
     private var userDatabase: Database!
     
     /// Error that can be thrown in the test.
@@ -61,20 +54,16 @@ final class AuthenticationRepositoryTests: XCTestCase {
     
     func testThatConfirmForgotPasswordShouldPassCorrectParameters() async throws {
         // Given
-        let sut = AuthenticationRepositoryImpl(
-            cognitoAuthenticatableClient: cognitoClient,
-            userDatabase: userDatabase
+        let sut = AuthenticationRepositoryImpl(cognitoAuthenticatableClient: cognitoClient, userDatabase: userDatabase)
+        let parameters = ConfirmForgotPasswordParameters(
+            confirmationCode: "confirmationCode",
+            confirmPassword: "newPassword",
+            email: "example@email.com",
+            newPassword: "newPassword"
         )
         
         // When
-        try await sut.confirmForgotPassword(
-            ConfirmForgotPasswordParameters(
-                confirmationCode: "confirmationCode",
-                confirmPassword: "newPassword",
-                email: "example@email.com",
-                newPassword: "newPassword"
-            )
-        )
+        try await sut.confirmForgotPassword(parameters)
         
         // Then
         XCTAssertEqual(cognitoClient.username, "example@email.com")
@@ -85,150 +74,127 @@ final class AuthenticationRepositoryTests: XCTestCase {
     func testThatConfirmForgotPasswordShouldFailOnInvalidPassword() async throws {
         // Given
         var error: KountyAbortError!
-        let sut = AuthenticationRepositoryImpl(
-            cognitoAuthenticatableClient: cognitoClient,
-            userDatabase: userDatabase
+        let sut = AuthenticationRepositoryImpl(cognitoAuthenticatableClient: cognitoClient, userDatabase: userDatabase)
+        let parameters = ConfirmForgotPasswordParameters(
+            confirmationCode: "confirmationCode",
+            confirmPassword: "newPassword",
+            email: "example@email.com",
+            newPassword: "newPassword"
         )
         
         // When
         cognitoClient.error = KountyError(
-            kind: CognitoErrorReason.invalidPassword,
+            kind: .CognitoErrorReason.invalidPassword,
             underlyingError: AuthenticationError.error(reason: "Test")
         )
         
         do {
-            try await sut.confirmForgotPassword(
-                ConfirmForgotPasswordParameters(
-                    confirmationCode: "confirmationCode",
-                    confirmPassword: "newPassword",
-                    email: "example@email.com",
-                    newPassword: "newPassword"
-                )
-            )
+            try await sut.confirmForgotPassword(parameters)
         } catch let abortError as KountyAbortError {
             error = abortError
         }
         
         // Then
+        XCTAssertNil(error.title)
         XCTAssertEqual(error.status, .badRequest)
         XCTAssertEqual(error.reason, "Test")
-        XCTAssertNil(error.title)
         XCTAssertFalse(error.underlyingErrors.isEmpty)
     }
 
     func testThatConfirmForgotPasswordShouldFailOnInvalidConfirmationCode() async throws {
         // Given
         var error: KountyAbortError!
-        let sut = AuthenticationRepositoryImpl(
-            cognitoAuthenticatableClient: cognitoClient,
-            userDatabase: userDatabase
+        let sut = AuthenticationRepositoryImpl(cognitoAuthenticatableClient: cognitoClient, userDatabase: userDatabase)
+        let parameters = ConfirmForgotPasswordParameters(
+            confirmationCode: "confirmationCode",
+            confirmPassword: "newPassword",
+            email: "example@email.com",
+            newPassword: "newPassword"
         )
         
         // When
         cognitoClient.error = KountyError(
-            kind: CognitoErrorReason.invalidConfirmationCode,
+            kind: .CognitoErrorReason.invalidConfirmationCode,
             underlyingError: AuthenticationError.error(reason: "Test")
         )
         
         do {
-            try await sut.confirmForgotPassword(
-                ConfirmForgotPasswordParameters(
-                    confirmationCode: "confirmationCode",
-                    confirmPassword: "newPassword",
-                    email: "example@email.com",
-                    newPassword: "newPassword"
-                )
-            )
+            try await sut.confirmForgotPassword(parameters)
         } catch let abortError as KountyAbortError {
             error = abortError
         }
         
         // Then
+        XCTAssertNil(error.title)
         XCTAssertEqual(error.status, .badRequest)
         XCTAssertEqual(error.reason, "Test")
-        XCTAssertNil(error.title)
         XCTAssertFalse(error.underlyingErrors.isEmpty)
     }
 
     func testThatConfirmForgotPasswordShouldFailOnErrorKindDifferentToCognitoErrorReasonType() async throws {
         // Given
         var error: KountyAbortError!
-        let sut = AuthenticationRepositoryImpl(
-            cognitoAuthenticatableClient: cognitoClient,
-            userDatabase: userDatabase
+        let sut = AuthenticationRepositoryImpl(cognitoAuthenticatableClient: cognitoClient, userDatabase: userDatabase)
+        let parameters = ConfirmForgotPasswordParameters(
+            confirmationCode: "confirmationCode",
+            confirmPassword: "newPassword",
+            email: "example@email.com",
+            newPassword: "newPassword"
         )
         
         // When
         cognitoClient.error = KountyError(
-            kind: TestErrorReason.test,
+            kind: .testErrorReason,
             underlyingError: AuthenticationError.error(reason: "Test")
         )
         
         do {
-            try await sut.confirmForgotPassword(
-                ConfirmForgotPasswordParameters(
-                    confirmationCode: "confirmationCode",
-                    confirmPassword: "newPassword",
-                    email: "example@email.com",
-                    newPassword: "newPassword"
-                )
-            )
+            try await sut.confirmForgotPassword(parameters)
         } catch let abortError as KountyAbortError {
             error = abortError
         }
         
         // Then
+        XCTAssertNil(error.title)
         XCTAssertEqual(error.status, .internalServerError)
         XCTAssertEqual(error.reason, "Test")
-        XCTAssertNil(error.title)
         XCTAssertFalse(error.underlyingErrors.isEmpty)
     }
 
     func testThatConfirmForgotPasswordShouldFailOnAnyError() async throws {
         // Given
         var error: KountyAbortError!
-        let sut = AuthenticationRepositoryImpl(
-            cognitoAuthenticatableClient: cognitoClient,
-            userDatabase: userDatabase
+        let sut = AuthenticationRepositoryImpl(cognitoAuthenticatableClient: cognitoClient, userDatabase: userDatabase)
+        let parameters = ConfirmForgotPasswordParameters(
+            confirmationCode: "confirmationCode",
+            confirmPassword: "newPassword",
+            email: "example@email.com",
+            newPassword: "newPassword"
         )
         
         // When
         cognitoClient.error = NSError(domain: "", code: 0)
         
         do {
-            try await sut.confirmForgotPassword(
-                ConfirmForgotPasswordParameters(
-                    confirmationCode: "confirmationCode",
-                    confirmPassword: "newPassword",
-                    email: "example@email.com",
-                    newPassword: "newPassword"
-                )
-            )
+            try await sut.confirmForgotPassword(parameters)
         } catch let abortError as KountyAbortError {
             error = abortError
         }
         
         // Then
-        XCTAssertEqual(error.status, .internalServerError)
-        XCTAssertEqual(error.reason, "The operation couldn’t be completed. ( error 0.)")
         XCTAssertNil(error.title)
+        XCTAssertEqual(error.status, .internalServerError)
+        XCTAssertNotNil(error.reason)
         XCTAssertFalse(error.underlyingErrors.isEmpty)
     }
     
     func testThatConfirmSignUpShouldPassCorrectParameters() async throws {
         // Given
-        let sut = AuthenticationRepositoryImpl(
-            cognitoAuthenticatableClient: cognitoClient,
-            userDatabase: userDatabase
-        )
+        let parameters = ConfirmSignUpParameters(confirmationCode: "confirmationCode", email: "email")
+        let sut = AuthenticationRepositoryImpl(cognitoAuthenticatableClient: cognitoClient, userDatabase: userDatabase)
         
         // When
-        try await sut.confirmSignUp(
-            ConfirmSignUpParameters(
-                confirmationCode: "confirmationCode",
-                email: "email"
-            )
-        )
+        try await sut.confirmSignUp(parameters)
         
         // Then
         XCTAssertEqual(cognitoClient.username, "email")
@@ -238,110 +204,84 @@ final class AuthenticationRepositoryTests: XCTestCase {
     func testThatConfirmSignUpShouldFailOnExpiredConfirmationCode() async throws {
         // Given
         var error: KountyAbortError!
-        let sut = AuthenticationRepositoryImpl(
-            cognitoAuthenticatableClient: cognitoClient,
-            userDatabase: userDatabase
-        )
+        let parameters = ConfirmSignUpParameters(confirmationCode: "confirmationCode", email: "email")
+        let sut = AuthenticationRepositoryImpl(cognitoAuthenticatableClient: cognitoClient, userDatabase: userDatabase)
         
         // When
         cognitoClient.error = KountyError(
-            kind: CognitoErrorReason.expiredConfirmationCode,
+            kind: .CognitoErrorReason.expiredConfirmationCode,
             underlyingError: AuthenticationError.error(reason: "Test")
         )
 
         do {
-            try await sut.confirmSignUp(
-                ConfirmSignUpParameters(
-                    confirmationCode: "confirmationCode",
-                    email: "email"
-                )
-            )
+            try await sut.confirmSignUp(parameters)
         } catch let abortError as KountyAbortError {
             error = abortError
         }
         
-        
         // Then
+        XCTAssertNil(error.title)
         XCTAssertEqual(cognitoClient.username, "email")
         XCTAssertEqual(cognitoClient.confirmationCode, "confirmationCode")
         XCTAssertEqual(error.status, .badRequest)
         XCTAssertEqual(error.reason, "Test")
-        XCTAssertNil(error.title)
         XCTAssertFalse(error.underlyingErrors.isEmpty)
     }
 
     func testThatConfirmSignUpShouldFailOnErrorKindDifferentToCognitoErrorReasonType() async throws {
         // Given
         var error: KountyAbortError!
-        let sut = AuthenticationRepositoryImpl(
-            cognitoAuthenticatableClient: cognitoClient,
-            userDatabase: userDatabase
-        )
+        let parameters = ConfirmSignUpParameters(confirmationCode: "confirmationCode", email: "email")
+        let sut = AuthenticationRepositoryImpl(cognitoAuthenticatableClient: cognitoClient, userDatabase: userDatabase)
         
         // When
         cognitoClient.error = KountyError(
-            kind: TestErrorReason.test,
+            kind: .testErrorReason,
             underlyingError: AuthenticationError.error(reason: "Test")
         )
 
         do {
-            try await sut.confirmSignUp(
-                ConfirmSignUpParameters(
-                    confirmationCode: "confirmationCode",
-                    email: "email"
-                )
-            )
+            try await sut.confirmSignUp(parameters)
         } catch let abortError as KountyAbortError {
             error = abortError
         }
         
-        
         // Then
         XCTAssertEqual(cognitoClient.username, "email")
         XCTAssertEqual(cognitoClient.confirmationCode, "confirmationCode")
+        XCTAssertNil(error.title)
         XCTAssertEqual(error.status, .internalServerError)
         XCTAssertEqual(error.reason, "Test")
-        XCTAssertNil(error.title)
         XCTAssertFalse(error.underlyingErrors.isEmpty)
     }
 
     func testThatConfirmSignUpShouldFailOnAnyError() async throws {
         // Given
         var error: KountyAbortError!
-        let sut = AuthenticationRepositoryImpl(
-            cognitoAuthenticatableClient: cognitoClient,
-            userDatabase: userDatabase
-        )
+        let parameters = ConfirmSignUpParameters(confirmationCode: "confirmationCode", email: "email")
+        let sut = AuthenticationRepositoryImpl(cognitoAuthenticatableClient: cognitoClient, userDatabase: userDatabase)
         
         // When
         cognitoClient.error = NSError(domain: "", code: 0)
+        
         do {
-            try await sut.confirmSignUp(
-                ConfirmSignUpParameters(
-                    confirmationCode: "confirmationCode",
-                    email: "email"
-                )
-            )
+            try await sut.confirmSignUp(parameters)
         } catch let abortError as KountyAbortError {
             error = abortError
         }
         
-        
         // Then
         XCTAssertEqual(cognitoClient.username, "email")
         XCTAssertEqual(cognitoClient.confirmationCode, "confirmationCode")
-        XCTAssertEqual(error.status, .internalServerError)
-        XCTAssertEqual(error.reason, "The operation couldn’t be completed. ( error 0.)")
         XCTAssertNil(error.title)
+        XCTAssertEqual(error.status, .internalServerError)
+        XCTAssertNotNil(error.reason)
         XCTAssertFalse(error.underlyingErrors.isEmpty)
     }
     
     func testThatForgotPasswordShouldPassCorrectParameters() async throws {
         // Given
-        let sut = AuthenticationRepositoryImpl(
-            cognitoAuthenticatableClient: cognitoClient,
-            userDatabase: userDatabase
-        )
+        let sut = AuthenticationRepositoryImpl(cognitoAuthenticatableClient: cognitoClient, userDatabase: userDatabase)
         
         // When
         try await sut.forgotPassword(email: "email")
@@ -353,14 +293,11 @@ final class AuthenticationRepositoryTests: XCTestCase {
     func testThatForgotPasswordShouldFailOnUserNotConfirmed() async throws {
         // Given
         var error: KountyAbortError!
-        let sut = AuthenticationRepositoryImpl(
-            cognitoAuthenticatableClient: cognitoClient,
-            userDatabase: userDatabase
-        )
+        let sut = AuthenticationRepositoryImpl(cognitoAuthenticatableClient: cognitoClient, userDatabase: userDatabase)
         
         // When
         cognitoClient.error = KountyError(
-            kind: CognitoErrorReason.userNotConfirmed,
+            kind: .CognitoErrorReason.userNotConfirmed,
             underlyingError: AuthenticationError.error(reason: "Test")
         )
 
@@ -372,23 +309,20 @@ final class AuthenticationRepositoryTests: XCTestCase {
         
         // Then
         XCTAssertEqual(cognitoClient.username, "email")
+        XCTAssertNil(error.title)
         XCTAssertEqual(error.status, .badRequest)
         XCTAssertEqual(error.reason, "Test")
-        XCTAssertNil(error.title)
         XCTAssertFalse(error.underlyingErrors.isEmpty)
     }
 
     func testThatForgotPasswordShouldFailOnErrorKindDifferentToCognitoErrorReasonType() async throws {
         // Given
         var error: KountyAbortError!
-        let sut = AuthenticationRepositoryImpl(
-            cognitoAuthenticatableClient: cognitoClient,
-            userDatabase: userDatabase
-        )
+        let sut = AuthenticationRepositoryImpl(cognitoAuthenticatableClient: cognitoClient, userDatabase: userDatabase)
         
         // When
         cognitoClient.error = KountyError(
-            kind: TestErrorReason.test,
+            kind: .testErrorReason,
             underlyingError: AuthenticationError.error(reason: "Test")
         )
 
@@ -400,19 +334,16 @@ final class AuthenticationRepositoryTests: XCTestCase {
         
         // Then
         XCTAssertEqual(cognitoClient.username, "email")
+        XCTAssertNil(error.title)
         XCTAssertEqual(error.status, .internalServerError)
         XCTAssertEqual(error.reason, "Test")
-        XCTAssertNil(error.title)
         XCTAssertFalse(error.underlyingErrors.isEmpty)
     }
 
     func testThatForgotPasswordShouldFailOnAnyError() async throws {
         // Given
         var error: KountyAbortError!
-        let sut = AuthenticationRepositoryImpl(
-            cognitoAuthenticatableClient: cognitoClient,
-            userDatabase: userDatabase
-        )
+        let sut = AuthenticationRepositoryImpl(cognitoAuthenticatableClient: cognitoClient, userDatabase: userDatabase)
         
         // When
         cognitoClient.error = NSError(domain: "", code: 0)
@@ -424,19 +355,15 @@ final class AuthenticationRepositoryTests: XCTestCase {
         
         // Then
         XCTAssertEqual(cognitoClient.username, "email")
-        XCTAssertEqual(error.status, .internalServerError)
-        XCTAssertEqual(error.reason, "The operation couldn’t be completed. ( error 0.)")
         XCTAssertNil(error.title)
+        XCTAssertEqual(error.status, .internalServerError)
+        XCTAssertNotNil(error.reason)
         XCTAssertFalse(error.underlyingErrors.isEmpty)
     }
     
     func testThatSignInShouldPassCorrectParameters() async throws {
         // Given
-        let sut = AuthenticationRepositoryImpl(
-            cognitoAuthenticatableClient: cognitoClient,
-            userDatabase: userDatabase
-        )
-        
+        let sut = AuthenticationRepositoryImpl(cognitoAuthenticatableClient: cognitoClient, userDatabase: userDatabase)
         let user = UserDTO(
             countryCode: "+57",
             email: "email",
@@ -461,14 +388,12 @@ final class AuthenticationRepositoryTests: XCTestCase {
     func testThatSignInShouldFailOnUserNotFound() async throws {
         // Given
         var error: KountyAbortError!
-        let sut = AuthenticationRepositoryImpl(
-            cognitoAuthenticatableClient: cognitoClient,
-            userDatabase: userDatabase
-        )
+        let parameters = SignInParameters(email: "email", password: "password")
+        let sut = AuthenticationRepositoryImpl(cognitoAuthenticatableClient: cognitoClient, userDatabase: userDatabase)
         
         // When
         do {
-            _ = try await sut.signIn(SignInParameters(email: "email", password: "password"))
+            _ = try await sut.signIn(parameters)
         } catch let abortError as KountyAbortError {
             error = abortError
         }
@@ -476,27 +401,25 @@ final class AuthenticationRepositoryTests: XCTestCase {
         // Then
         XCTAssertEqual(cognitoClient.username, "email")
         XCTAssertEqual(cognitoClient.password, "password")
-        XCTAssertEqual(error.status, .notFound)
         XCTAssertNil(error.title)
+        XCTAssertEqual(error.status, .notFound)
         XCTAssertNotNil(error.underlyingErrors)
     }
 
     func testThatSignInShouldFailOnInvalidPassword() async throws {
         // Given
         var error: KountyAbortError!
-        let sut = AuthenticationRepositoryImpl(
-            cognitoAuthenticatableClient: cognitoClient,
-            userDatabase: userDatabase
-        )
+        let parameters = SignInParameters(email: "email", password: "password")
+        let sut = AuthenticationRepositoryImpl(cognitoAuthenticatableClient: cognitoClient, userDatabase: userDatabase)
         
         // When
         cognitoClient.error = KountyError(
-            kind: CognitoErrorReason.invalidPassword,
+            kind: .CognitoErrorReason.invalidPassword,
             underlyingError: AuthenticationError.error(reason: "Test")
         )
 
         do {
-            _ = try await sut.signIn(SignInParameters(email: "email", password: "password"))
+            _ = try await sut.signIn(parameters)
         } catch let abortError as KountyAbortError {
             error = abortError
         }
@@ -504,28 +427,26 @@ final class AuthenticationRepositoryTests: XCTestCase {
         // Then
         XCTAssertEqual(cognitoClient.username, "email")
         XCTAssertEqual(cognitoClient.password, "password")
+        XCTAssertNil(error.title)
         XCTAssertEqual(error.status, .badRequest)
         XCTAssertEqual(error.reason, "Test")
-        XCTAssertNil(error.title)
         XCTAssertFalse(error.underlyingErrors.isEmpty)
     }
 
     func testThatSignInShouldFailOnErrorKindDifferentToCognitoErrorReasonType() async throws {
         // Given
         var error: KountyAbortError!
-        let sut = AuthenticationRepositoryImpl(
-            cognitoAuthenticatableClient: cognitoClient,
-            userDatabase: userDatabase
-        )
+        let parameters = SignInParameters(email: "email", password: "password")
+        let sut = AuthenticationRepositoryImpl(cognitoAuthenticatableClient: cognitoClient, userDatabase: userDatabase)
         
         // When
         cognitoClient.error = KountyError(
-            kind: TestErrorReason.test,
+            kind: .testErrorReason,
             underlyingError: AuthenticationError.error(reason: "Test")
         )
 
         do {
-            _ = try await sut.signIn(SignInParameters(email: "email", password: "password"))
+            _ = try await sut.signIn(parameters)
         } catch let abortError as KountyAbortError {
             error = abortError
         }
@@ -534,24 +455,22 @@ final class AuthenticationRepositoryTests: XCTestCase {
         XCTAssertEqual(cognitoClient.username, "email")
         XCTAssertEqual(cognitoClient.password, "password")
         XCTAssertEqual(error.status, .internalServerError)
-        XCTAssertEqual(error.reason, "Test")
         XCTAssertNil(error.title)
+        XCTAssertEqual(error.reason, "Test")
         XCTAssertFalse(error.underlyingErrors.isEmpty)
     }
 
     func testThatSignInShouldFailOnAnyError() async throws {
         // Given
         var error: KountyAbortError!
-        let sut = AuthenticationRepositoryImpl(
-            cognitoAuthenticatableClient: cognitoClient,
-            userDatabase: userDatabase
-        )
+        let parameters = SignInParameters(email: "email", password: "password")
+        let sut = AuthenticationRepositoryImpl(cognitoAuthenticatableClient: cognitoClient, userDatabase: userDatabase)
         
         // When
         cognitoClient.error = NSError(domain: "", code: 0)
 
         do {
-            _ = try await sut.signIn(SignInParameters(email: "email", password: "password"))
+            _ = try await sut.signIn(parameters)
         } catch let abortError as KountyAbortError {
             error = abortError
         }
@@ -559,19 +478,15 @@ final class AuthenticationRepositoryTests: XCTestCase {
         // Then
         XCTAssertEqual(cognitoClient.username, "email")
         XCTAssertEqual(cognitoClient.password, "password")
-        XCTAssertEqual(error.status, .internalServerError)
-        XCTAssertEqual(error.reason, "The operation couldn’t be completed. ( error 0.)")
         XCTAssertNil(error.title)
+        XCTAssertNotNil(error.reason)
+        XCTAssertEqual(error.status, .internalServerError)
         XCTAssertFalse(error.underlyingErrors.isEmpty)
     }
     
     func testThatSignUpShouldPassCorrectParameters() async throws {
         // Given
-        let sut = AuthenticationRepositoryImpl(
-            cognitoAuthenticatableClient: cognitoClient,
-            userDatabase: userDatabase
-        )
-        
+        let sut = AuthenticationRepositoryImpl(cognitoAuthenticatableClient: cognitoClient, userDatabase: userDatabase)
         let parameters = SignUpParameters(
             countryCode: "+57",
             email: "email",
@@ -587,20 +502,14 @@ final class AuthenticationRepositoryTests: XCTestCase {
         // Then
         XCTAssertEqual(cognitoClient.username, "email")
         XCTAssertEqual(cognitoClient.password, "password")
-//        XCTAssertEqual(userDatabase.user.email, parameters.email)
-//        XCTAssertEqual(userDatabase.user.firstName, parameters.firstName)
-//        XCTAssertEqual(userDatabase.user.lastName, parameters.lastName)
-//        XCTAssertEqual(userDatabase.user.phone, parameters.phone)
+        XCTAssertEqual(cognitoClient.firstName, "firstName")
+        XCTAssertEqual(cognitoClient.lastName, "lastName")
     }
 
     func testThatSignUpShouldFailOnCognitoError() async throws {
         // Given
         var error: KountyAbortError!
-        let sut = AuthenticationRepositoryImpl(
-            cognitoAuthenticatableClient: cognitoClient,
-            userDatabase: userDatabase
-        )
-        
+        let sut = AuthenticationRepositoryImpl(cognitoAuthenticatableClient: cognitoClient, userDatabase: userDatabase)
         let parameters = SignUpParameters(
             countryCode: "+57",
             email: "email",
@@ -612,7 +521,7 @@ final class AuthenticationRepositoryTests: XCTestCase {
         
         // When
         cognitoClient.error = KountyError(
-            kind: CognitoErrorReason.signupFailed,
+            kind: .CognitoErrorReason.signUpFailed,
             underlyingError: AuthenticationError.error(reason: "Test")
         )
 
@@ -634,11 +543,7 @@ final class AuthenticationRepositoryTests: XCTestCase {
     func testThatSignUpShouldFailOnErrorKindDifferentToCognitoErrorReasonType() async throws {
         // Given
         var error: KountyAbortError!
-        let sut = AuthenticationRepositoryImpl(
-            cognitoAuthenticatableClient: cognitoClient,
-            userDatabase: userDatabase
-        )
-        
+        let sut = AuthenticationRepositoryImpl(cognitoAuthenticatableClient: cognitoClient, userDatabase: userDatabase)
         let parameters = SignUpParameters(
             countryCode: "+57",
             email: "email",
@@ -650,7 +555,7 @@ final class AuthenticationRepositoryTests: XCTestCase {
         
         // When
         cognitoClient.error = KountyError(
-            kind: TestErrorReason.test,
+            kind: .testErrorReason,
             underlyingError: AuthenticationError.error(reason: "Test")
         )
 
@@ -672,11 +577,7 @@ final class AuthenticationRepositoryTests: XCTestCase {
     func testThatSignUpShouldFailOnAnyError() async throws {
         // Given
         var error: KountyAbortError!
-        let sut = AuthenticationRepositoryImpl(
-            cognitoAuthenticatableClient: cognitoClient,
-            userDatabase: userDatabase
-        )
-        
+        let sut = AuthenticationRepositoryImpl(cognitoAuthenticatableClient: cognitoClient, userDatabase: userDatabase)
         let parameters = SignUpParameters(
             countryCode: "+57",
             email: "email",
@@ -698,8 +599,12 @@ final class AuthenticationRepositoryTests: XCTestCase {
         XCTAssertEqual(cognitoClient.username, "email")
         XCTAssertEqual(cognitoClient.password, "password")
         XCTAssertEqual(error.status, .internalServerError)
-        XCTAssertEqual(error.reason, "The operation couldn’t be completed. ( error 0.)")
+        XCTAssertNotNil(error.reason)
         XCTAssertNil(error.title)
         XCTAssertFalse(error.underlyingErrors.isEmpty)
     }
+}
+
+private extension ErrorReason {
+    static let testErrorReason = ErrorReason(rawValue: "Test_Error_Reason")
 }

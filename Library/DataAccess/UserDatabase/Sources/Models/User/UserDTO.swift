@@ -96,8 +96,6 @@ public final class UserDTO: Model {
     ///
     /// - Parameter database: The database connection on which to execute the operation.
     /// - Throws: An error if there's an issue with the database operation.
-    /// - Note: This method overrides the default implementation of the `Model` protocol by adding
-    /// extra functionally, like validating the existence of the model in order to update or create a record.
     public func save(on database: Database) async throws {
         do {
             guard id != nil else {
@@ -109,7 +107,7 @@ public final class UserDTO: Model {
             
             try await update(on: database)
         } catch {
-            throw error.asKountyError(or: UserDatabaseErrorReason.saveFailed)
+            throw error.asKountyError(or: .UserDatabaseErrorReason.saveFailed)
         }
     }
     
@@ -127,14 +125,14 @@ public final class UserDTO: Model {
         
         if user.email == email {
             throw KountyError(
-                kind: UserDatabaseErrorReason.emailTaken,
+                kind: .UserDatabaseErrorReason.emailTaken,
                 failureReason: "El email se encuentra registrado."
             )
         }
         
         if user.phone == phone {
             throw KountyError(
-                kind: UserDatabaseErrorReason.phoneIsRegistered,
+                kind: .UserDatabaseErrorReason.phoneIsRegistered,
                 failureReason: "El telefono se encuentra registrado."
             )
         }

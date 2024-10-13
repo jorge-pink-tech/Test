@@ -1,8 +1,5 @@
 //
-//  FieldKey+ExtensionsTests.swift
-//  
-//  Created by PinkTech on 8/01/24.
-//  Copyright © 2023 PinkTech. All rights reserved.
+// Copyright © 2024 PinkTech. All rights reserved.
 //
 
 import Fluent
@@ -15,11 +12,11 @@ enum TestEnum: String {
     case cases = "value"
 }
 
-final class FieldKey_ExtensionsTests: XCTestCase {
+final class FieldKeyExtensionsTests: XCTestCase {
 
     // MARK: Tests
 
-    func testExample() throws {
+    func testThatValidateStringValueFromEnum() throws {
         // Given
         let sut = FieldKey.string(TestEnum.cases)
 

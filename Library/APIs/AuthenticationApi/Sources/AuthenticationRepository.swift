@@ -88,10 +88,8 @@ public class AuthenticationRepositoryImpl: AuthenticationRepository {
                 newPassword: parameters.newPassword,
                 confirmationCode: parameters.confirmationCode
             )
-        } catch let error as KountyError {
-            throw error.asAbortError(error.kind.statusCode)
         } catch {
-            throw error.asAbortError()
+            throw error.toAbortError()
         }
     }
     
@@ -105,10 +103,8 @@ public class AuthenticationRepositoryImpl: AuthenticationRepository {
                 username: parameters.email,
                 confirmationCode: parameters.confirmationCode
             )
-        } catch let error as KountyError {
-            throw error.asAbortError(error.kind.statusCode)
         } catch {
-            throw error.asAbortError()
+            throw error.toAbortError()
         }
     }
     
@@ -122,10 +118,8 @@ public class AuthenticationRepositoryImpl: AuthenticationRepository {
             let accessTokenPayload = try await cognitoAuthenticatableClient.decode(accessToken)
             
             return .init(expiresIn: accessTokenPayload.exp, username: accessTokenPayload.email)
-        } catch let error as KountyError {
-            throw error.asAbortError(error.kind.statusCode)
         } catch {
-            throw error.asAbortError()
+            throw error.toAbortError()
         }
     }
 
@@ -137,10 +131,8 @@ public class AuthenticationRepositoryImpl: AuthenticationRepository {
     public func forgotPassword(email: String) async throws {
         do {
             try await cognitoAuthenticatableClient.forgotPassword(username: email)
-        } catch let error as KountyError {
-            throw error.asAbortError(error.kind.statusCode)
         } catch {
-            throw error.asAbortError()
+            throw error.toAbortError()
         }
     }
     
@@ -153,6 +145,7 @@ public class AuthenticationRepositoryImpl: AuthenticationRepository {
         do {
             let credential = UsernameAndPasswordCredential(username: parameters.email, password: parameters.password)
             let cognitoToken = try await cognitoAuthenticatableClient.signIn(credential)
+            
             _ = try await UserDTO.query(on: userDatabase)
                 .filter(\.$email == parameters.email)
                 .first()
@@ -164,10 +157,8 @@ public class AuthenticationRepositoryImpl: AuthenticationRepository {
                 idToken: cognitoToken.idToken,
                 refreshToken: cognitoToken.refreshToken
             )
-        } catch let error as KountyError {
-            throw error.asAbortError(error.kind.statusCode)
         } catch {
-            throw error.asAbortError()
+            throw error.toAbortError()
         }
     }
     
@@ -194,27 +185,25 @@ public class AuthenticationRepositoryImpl: AuthenticationRepository {
             )
 
             try await user.save(on: userDatabase)
-        } catch let error as KountyError {
-            throw error.asAbortError(error.kind.statusCode)
         } catch {
-            throw error.asAbortError()
+            throw error.toAbortError()
         }
     }
 }
 
-private extension CognitoErrorReason {
-    /// The  HTTP response status code.
+private extension ErrorReason {
+    /// Returns the HTTP status code associated with the error reason.
     var statusCode: HTTPResponseStatus {
         switch self {
-        case .invalidConfirmationCode,
-             .confirmSignUpFailed,
-             .expiredConfirmationCode,
-             .invalidPassword,
-             .userNotConfirmed:
+        case .CognitoErrorReason.invalidConfirmationCode,
+             .CognitoErrorReason.confirmSignUpFailed,
+             .CognitoErrorReason.expiredConfirmationCode,
+             .CognitoErrorReason.invalidPassword,
+             .CognitoErrorReason.userNotConfirmed:
 
             return .badRequest
             
-        case .unauthorized:
+        case .CognitoErrorReason.unauthorized:
             return .unauthorized
 
         default:
@@ -223,13 +212,13 @@ private extension CognitoErrorReason {
     }
 }
 
-private extension ErrorReason {
-    /// Returns the HTTP status code associated with the error reason.
-    var statusCode: HTTPResponseStatus {
-        guard let kind = self as? CognitoErrorReason else {
-            return .internalServerError
+private extension Error {
+    /// Casts the instance as `KountyAbortError` or returns a default one.
+    func toAbortError() -> KountyAbortError {
+        guard let error = self as? KountyError else {
+            return asAbortError()
         }
         
-        return kind.statusCode
+        return error.asAbortError(error.kind.statusCode)
     }
 }

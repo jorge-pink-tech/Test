@@ -27,8 +27,13 @@
       buildConfiguration = "Debug"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
-      shouldUseLaunchSchemeArgsEnv = "YES"
-      shouldAutocreateTestPlan = "YES">
+      shouldUseLaunchSchemeArgsEnv = "YES">
+      <TestPlans>
+         <TestPlanReference
+            reference = "container:kounty-api.xctestplan"
+            default = "YES">
+         </TestPlanReference>
+      </TestPlans>
       <Testables>
          <TestableReference
             skipped = "NO">
@@ -65,7 +70,7 @@
       <EnvironmentVariables>
          <EnvironmentVariable
             key = "DATABASE_PORT"
-            value = "5433"
+            value = "5432"
             isEnabled = "YES">
          </EnvironmentVariable>
          <EnvironmentVariable
@@ -85,7 +90,7 @@
          </EnvironmentVariable>
          <EnvironmentVariable
             key = "DATABASE_NAME"
-            value = "kounty-users"
+            value = "kounty"
             isEnabled = "YES">
          </EnvironmentVariable>
       </EnvironmentVariables>

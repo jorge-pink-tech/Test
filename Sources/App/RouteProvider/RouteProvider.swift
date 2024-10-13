@@ -37,11 +37,16 @@ struct RouteProvider {
             return
         }
         
+        guard let datasourceDatabase = application.databases.database(logger: logger, on: eventLoop) else {
+            return
+        }
+        
         // Services
         let cognitoClient = CognitoClient(clientId: "5cjb30aes7v4tdcn4qnel3lf9v", poolId: "us-east-1_CTA9LEI3X")
         
         // Repositories
-        let datasourceRepository = DatasourceRepositoryImpl(datasourceDatabase: database)
+        let authenticationCredentialRepository = AuthenticationCredentialRepositoryImpl(database: datasourceDatabase)
+        let datasourceRepository = DatasourceRepositoryImpl(datasourceDatabase: datasourceDatabase)
         let userRepository = UserRepositoryImpl(userDatabase: database)
         let authenticationRepository = AuthenticationRepositoryImpl(
             cognitoAuthenticatableClient: cognitoClient,
@@ -51,6 +56,9 @@ struct RouteProvider {
         // Controllers
         let authenticationController = AuthenticationController(authenticationRepository: authenticationRepository)
         let datasourceController = DatasourceController(datasourceRepository: datasourceRepository)
+        let authenticationCredentialController = AuthenticationCredentialController(
+            authenticationCredentialRepository: authenticationCredentialRepository
+        )
         
         // Routes
         let api = application
@@ -72,5 +80,9 @@ struct RouteProvider {
         try authenticatedApi
             .grouped("datasources")
             .register(collection: datasourceController)
+
+        try authenticatedApi
+            .grouped("authentication-credentials")
+            .register(collection: authenticationCredentialController)            
     }
 }

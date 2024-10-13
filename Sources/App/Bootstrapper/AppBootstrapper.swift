@@ -14,6 +14,11 @@ import Storage
 import UserDatabase
 import Vapor
 
+extension DatabaseID {
+    /// The ID for the datasource database.
+    static let datasourceDatabaseId = DatabaseID(string: "datasource-database")
+}
+
 /// The `AppBootstrapper` is responsible for setting up and initializing the necessary configurations
 /// and services needed to bootstrap the application, such as connecting to the database and running migrations.
 struct AppBootstrapper {
@@ -33,16 +38,27 @@ struct AppBootstrapper {
     func bootstrap() async throws {
         // uncomment to serve files from /Public folder
         // app.middleware.use(FileMiddleware(publicDirectory: app.directory.publicDirectory))
+        let defaultPortNumber = SQLPostgresConfiguration.ianaPortNumber
         let databaseConfiguration = SQLPostgresConfiguration(
             hostname: Environment.get("DATABASE_HOST") ?? "",
-            port: Environment.get("DATABASE_PORT").flatMap(Int.init) ?? SQLPostgresConfiguration.ianaPortNumber,
+            port: Environment.get("DATABASE_PORT").flatMap(Int.init) ?? defaultPortNumber,
             username: Environment.get("DATABASE_USERNAME") ?? "",
             password: Environment.get("DATABASE_PASSWORD") ?? "",
             database: Environment.get("DATABASE_NAME") ?? "",
             tls: .prefer(try .init(configuration: .clientDefault))
         )
         
+        let datasourceDatabaseConfiguration = SQLPostgresConfiguration(
+            hostname: Environment.get("DATASOURCE_DATABASE_HOST") ?? "",
+            port: Environment.get("DATASOURCE_DATABASE_PORT").flatMap(Int.init) ?? defaultPortNumber,
+            username: Environment.get("DATASOURCE_DATABASE_USERNAME") ?? "",
+            password: Environment.get("DATASOURCE_DATABASE_PASSWORD") ?? "",
+            database: Environment.get("DATASOURCE_DATABASE_NAME") ?? "",
+            tls: .prefer(try .init(configuration: .clientDefault))
+        )
+        
         application.databases.use(.postgres(configuration: databaseConfiguration), as: .psql)
+        application.databases.use(.postgres(configuration: datasourceDatabaseConfiguration), as: .datasourceDatabaseId)
 
         // Datasource migrations
         application.migrations.add(CreateDatasourceDatabaseMigration())

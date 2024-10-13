@@ -17,9 +17,6 @@ public struct CreateAuthenticationCredentialParameters: Decodable {
 
     /// The status of the authentication credential.
     public let status: AuthenticationCredential.Status
-    
-    /// The id of the user owner of the data.
-    public let userId: UUID
 
     /// The username associated with the credential.
     public let username: String
@@ -43,13 +40,6 @@ extension CreateAuthenticationCredentialParameters: Validatable {
             as: String.self,
             is: !.empty,
             customFailureDescription: "El nombre no puede estar vacio."
-        )
-        
-        validations.add(
-            "userId",
-            as: UUID.self,
-            is: .valid,
-            customFailureDescription: "El id del usuario no es valido."
         )
         
         validations.add(

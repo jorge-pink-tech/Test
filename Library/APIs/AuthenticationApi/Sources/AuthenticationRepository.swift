@@ -89,7 +89,7 @@ public class AuthenticationRepositoryImpl: AuthenticationRepository {
                 confirmationCode: parameters.confirmationCode
             )
         } catch {
-            throw error.asAbortError()
+            throw error.toAbortError()
         }
     }
     
@@ -104,7 +104,7 @@ public class AuthenticationRepositoryImpl: AuthenticationRepository {
                 confirmationCode: parameters.confirmationCode
             )
         } catch {
-            throw error.asAbortError()
+            throw error.toAbortError()
         }
     }
     
@@ -119,7 +119,7 @@ public class AuthenticationRepositoryImpl: AuthenticationRepository {
             
             return .init(expiresIn: accessTokenPayload.exp, username: accessTokenPayload.email)
         } catch {
-            throw error.asAbortError()
+            throw error.toAbortError()
         }
     }
 
@@ -132,7 +132,7 @@ public class AuthenticationRepositoryImpl: AuthenticationRepository {
         do {
             try await cognitoAuthenticatableClient.forgotPassword(username: email)
         } catch {
-            throw error.asAbortError()
+            throw error.toAbortError()
         }
     }
     
@@ -145,6 +145,7 @@ public class AuthenticationRepositoryImpl: AuthenticationRepository {
         do {
             let credential = UsernameAndPasswordCredential(username: parameters.email, password: parameters.password)
             let cognitoToken = try await cognitoAuthenticatableClient.signIn(credential)
+            
             _ = try await UserDTO.query(on: userDatabase)
                 .filter(\.$email == parameters.email)
                 .first()
@@ -157,7 +158,7 @@ public class AuthenticationRepositoryImpl: AuthenticationRepository {
                 refreshToken: cognitoToken.refreshToken
             )
         } catch {
-            throw error.asAbortError()
+            throw error.toAbortError()
         }
     }
     
@@ -185,7 +186,7 @@ public class AuthenticationRepositoryImpl: AuthenticationRepository {
 
             try await user.save(on: userDatabase)
         } catch {
-            throw error.asAbortError()
+            throw error.toAbortError()
         }
     }
 }
@@ -213,9 +214,9 @@ private extension ErrorReason {
 
 private extension Error {
     /// Casts the instance as `KountyAbortError` or returns a default one.
-    func asAbortError() -> KountyAbortError {
+    func toAbortError() -> KountyAbortError {
         guard let error = self as? KountyError else {
-            return .abort(.internalServerError, reason: localizedDescription, underlyingError: self)
+            return asAbortError()
         }
         
         return error.asAbortError(error.kind.statusCode)

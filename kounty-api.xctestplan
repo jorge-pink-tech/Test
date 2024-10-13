@@ -1,0 +1,50 @@
+{
+  "configurations" : [
+    {
+      "id" : "CA18D9E6-C579-497B-B22B-0892E6B08B42",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "environmentVariableEntries" : [
+      {
+        "key" : "DATABASE_PORT",
+        "value" : "5432"
+      },
+      {
+        "key" : "DATABASE_HOST",
+        "value" : "localhost"
+      },
+      {
+        "key" : "DATABASE_USERNAME",
+        "value" : "postgres"
+      },
+      {
+        "key" : "DATABASE_PASSWORD",
+        "value" : ""
+      },
+      {
+        "key" : "DATABASE_NAME",
+        "value" : "kounty"
+      }
+    ],
+    "targetForVariableExpansion" : {
+      "containerPath" : "container:",
+      "identifier" : "App",
+      "name" : "App"
+    }
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:",
+        "identifier" : "AppTests",
+        "name" : "AppTests"
+      }
+    }
+  ],
+  "version" : 1
+}

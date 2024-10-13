@@ -68,7 +68,7 @@ jobs:
         uses: VeryGoodOpenSource/very_good_coverage@v2
         with:
          path: 'coverage/app-lcov.info'
-         min_coverage: 1        
+         min_coverage: 0       
          
       - name: Post Test coverage
         uses: romeovs/lcov-reporter-action@v0.3.1

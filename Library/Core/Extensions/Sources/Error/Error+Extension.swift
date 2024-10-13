@@ -20,7 +20,7 @@ extension Error {
     }
     
     /// Casts the instance as `KountyError` or returns a default one.
-    public func asKountyError(or defaultKind: @autoclosure () -> ErrorReason) -> KountyError {
+    public func asKountyError(or defaultKind: @autoclosure () -> ErrorReason = .unknown) -> KountyError {
         self as? KountyError ?? KountyError(kind: defaultKind(), underlyingError: self)
     }
 }

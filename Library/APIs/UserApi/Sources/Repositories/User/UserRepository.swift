@@ -40,16 +40,12 @@ public class UserRepositoryImpl: UserRepository {
     /// - Throws: A `KountyAbortError`  if the user is not found.
     public func find(by email: String) async throws -> User {
         do {
-            guard let user = try await UserDTO.query(on: userDatabase)
+            let user = try await UserDTO.query(on: userDatabase)
                 .filter(\.$email == email)
-                .first() else {
+                .first()
+                .unwrap(or: .abort(.notFound, reason: "Usuario no encontrado"))
 
-                throw KountyAbortError(reason: "Usuario no encontrado", status: .notFound)
-            }
-
-            return try .from(user)
-        } catch let error as KountyError {
-            throw error.asAbortError(.internalServerError)
+            return try User.from(user)
         } catch {
             throw error.asAbortError()
         }

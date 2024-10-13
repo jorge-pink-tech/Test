@@ -11,7 +11,7 @@ if
     let additions = danger.github.pullRequest.additions,
     let deletions = danger.github.pullRequest.deletions, (additions + deletions) > 500 {
     
-    fail("Big PR, try to break it down into smaller pieces.")
+    fail("Big PR, The maximun number of changes allowed are 500 current \(additions + deletions). Try to break it down into smaller pieces")
 }
 
 let conventionalCommitRegex = #"^(feat|fix|chore|docs|style|refactor|perf|test|build|ci|revert)(\([\w\-]+\))?: .+"#

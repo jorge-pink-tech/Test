@@ -45,11 +45,10 @@ struct AppBootstrapper {
         application.databases.use(.postgres(configuration: databaseConfiguration), as: .psql)
 
         // Datasource migrations
-        application.migrations.add(DatasourceEnumMigration())
-        application.migrations.add(DatasourceMigration())
+        application.migrations.add(CreateDatasourceDatabaseMigration())
         
         // User Migrations
-        application.migrations.add(UserMigration())
+        application.migrations.add(CreateUserDatabaseMigration())
 
         try await application.autoMigrate()
     }

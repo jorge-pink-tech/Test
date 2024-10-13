@@ -20,6 +20,7 @@ final class UserRepositoryTests: XCTestCase {
     
     override func setUpWithError() throws {
         app = Application(.testing)
+        userDatabase = try app.testableUserDatabase()
     }
 
     override func tearDownWithError() throws {

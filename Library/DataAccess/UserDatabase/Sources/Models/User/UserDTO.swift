@@ -96,8 +96,6 @@ public final class UserDTO: Model {
     ///
     /// - Parameter database: The database connection on which to execute the operation.
     /// - Throws: An error if there's an issue with the database operation.
-    /// - Note: This method overrides the default implementation of the `Model` protocol by adding
-    /// extra functionally, like validating the existence of the model in order to update or create a record.
     public func save(on database: Database) async throws {
         do {
             guard id != nil else {
